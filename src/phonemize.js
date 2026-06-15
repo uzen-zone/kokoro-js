@@ -38,6 +38,7 @@ const CHINESE_PHRASE_OVERRIDES = new Map([
   ["一个", "ㄧ2ㄍㄜ5"],
   ["今天天气", "ㄐ阴1ㄊ言1ㄊ言1ㄑㄧ4"],
   ["儿化", "ㄦ2ㄏ穵4"],
+  ["小院儿", "ㄒ要3元R4"],
   ["个", "ㄍㄜ5"],
 ]);
 const CHINESE_PHRASES = [...CHINESE_PHRASE_OVERRIDES.keys()].sort((a, b) => b.length - a.length);
@@ -506,12 +507,12 @@ async function phonemize_mixed_zh(text) {
         return phonemize_zh(section);
       }
       if (/[A-Za-z]/.test(section)) {
-        return phonemize(section, "a", false);
+        return section.replace(/[A-Za-z][A-Za-z '-]*/g, "❓");
       }
       return section;
     }),
   );
-  return phonemes.join(" ").replace(/\s+([,.;:!?])/g, "$1").replace(/\s+/g, " ").trim();
+  return phonemes.join(" ").replace(/\s+([,;:!?])/g, "$1").replace(/❓\./g, "❓ .").replace(/\s+/g, " ").trim();
 }
 
 /**

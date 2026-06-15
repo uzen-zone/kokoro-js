@@ -21,7 +21,7 @@
   {"text":"音乐很乐观","py":"阴1月4/ㄏㄣ3/ㄌㄜ4ㄍ万1","status":"match"},
   {"text":"这个模型支持中文","py":"ㄓㄜ4ㄍㄜ5/ㄇㄛ2ㄒ应2/ㄓ十1ㄔ十2/ㄓ中1文2","status":"match"},
   {"text":"北京儿化音","py":"ㄅㄟ3ㄐ应1/ㄦ2ㄏ穵4/阴1","status":"match"},
-  {"text":"小院儿","py":"ㄒ要3元R4","current":"ㄒ要3/元4/ㄦ2","status":"gap"},
+  {"text":"小院儿","py":"ㄒ要3元R4","status":"match"},
   {"text":"女儿","py":"ㄋㄩ3ㄦ2","current":"ㄋㄩ3ㄦ2","status":"match"},
   {"text":"今天是2026年6月16日","py":"ㄐ阴1ㄊ言1/ㄕ十4/ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄌ又4月4/ㄕ十2ㄌ又4ㄖ十4","status":"match"},
   {"text":"价格是12.5元","py":"ㄐ压4ㄍㄜ2/ㄕ十4/ㄕ十2ㄦ4ㄉ言3/ㄨ3元2","status":"match"},
@@ -33,6 +33,6 @@
   {"text":"发卡行","py":"ㄈㄚ4ㄎㄚ3ㄏㄤ2","status":"match"},
   {"text":"行号","py":"ㄏㄤ2ㄏㄠ4","status":"match"},
   {"text":"一百二十三","py":"ㄧ4ㄅㄞ3ㄦ4ㄕ十2/ㄙㄢ1","status":"match"},
-  {"text":"Kokoro 支持中文和 English。","py":"❓ ㄓ十1ㄔ十2/ㄓ中1文2/ㄏㄜ2 ❓ .","current":"kˈoʊkəɹoʊ ㄓ十1ㄔ十2/ㄓ中1文2/ㄏㄜ2 ˈɪŋɡlɪʃ.","status":"gap"},
-  {"text":"AI 模型","py":"❓ ㄇㄛ2ㄒ应2","current":"ˌeɪˈaɪ ㄇㄛ2ㄒ应2","status":"gap"}
+  {"text":"Kokoro 支持中文和 English。","py":"❓ ㄓ十1ㄔ十2/ㄓ中1文2/ㄏㄜ2 ❓ .","status":"match"},
+  {"text":"AI 模型","py":"❓ ㄇㄛ2ㄒ应2","status":"match"}
 ]

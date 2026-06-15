@@ -12,7 +12,10 @@
 - Upgraded `@huggingface/transformers` to `^4.2.0` for improved WebGPU behavior.
 - Made the package build script Windows-compatible.
 - Updated demo defaults to Chinese text and v1.1 zh voices.
+- Aligned Chinese mixed-English fallback with Python `misaki` v1.1 golden output by emitting `❓` for English spans.
+- Documented the `fp16` ONNX diagnostic result while keeping the demo default on `fp32`.
 
 ### Fixed
 - Prevented failed voice downloads from being treated as voice data.
 - Avoided Chinese text falling through to English phonemization.
+- Matched the remaining Chinese golden corpus gaps, including `小院儿` erhua handling.
