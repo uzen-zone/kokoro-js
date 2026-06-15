@@ -1,4 +1,84 @@
 import { phonemize as espeakng } from "phonemizer";
+import { pinyin } from "pinyin-pro";
+
+const CHINESE_PUNCTUATION = new Map([
+  ["，", ","],
+  ["。", "."],
+  ["！", "!"],
+  ["？", "?"],
+  ["；", ";"],
+  ["：", ":"],
+  ["、", ","],
+]);
+
+const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+const CHINESE_SYLLABLE_PATTERN = /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+[0-5]$/;
+const CHINESE_WORD_SEGMENTER = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
+
+const ZHUYIN_INITIALS = new Map([
+  ["b", "ㄅ"],
+  ["p", "ㄆ"],
+  ["m", "ㄇ"],
+  ["f", "ㄈ"],
+  ["d", "ㄉ"],
+  ["t", "ㄊ"],
+  ["n", "ㄋ"],
+  ["l", "ㄌ"],
+  ["g", "ㄍ"],
+  ["k", "ㄎ"],
+  ["h", "ㄏ"],
+  ["j", "ㄐ"],
+  ["q", "ㄑ"],
+  ["x", "ㄒ"],
+  ["zh", "ㄓ"],
+  ["ch", "ㄔ"],
+  ["sh", "ㄕ"],
+  ["r", "ㄖ"],
+  ["z", "ㄗ"],
+  ["c", "ㄘ"],
+  ["s", "ㄙ"],
+]);
+
+const ZH_FINALS = new Map([
+  ["a", "ㄚ"],
+  ["o", "ㄛ"],
+  ["e", "ㄜ"],
+  ["ai", "ㄞ"],
+  ["ei", "ㄟ"],
+  ["ao", "ㄠ"],
+  ["ou", "ㄡ"],
+  ["an", "ㄢ"],
+  ["en", "ㄣ"],
+  ["ang", "ㄤ"],
+  ["eng", "ㄥ"],
+  ["er", "ㄦ"],
+  ["i", "ㄧ"],
+  ["ii", "ㄭ"],
+  ["iii", "十"],
+  ["ia", "压"],
+  ["ie", "ㄝ"],
+  ["iao", "要"],
+  ["iou", "又"],
+  ["ian", "言"],
+  ["in", "阴"],
+  ["iang", "阳"],
+  ["ing", "应"],
+  ["iong", "用"],
+  ["u", "ㄨ"],
+  ["ua", "穵"],
+  ["uo", "我"],
+  ["uai", "外"],
+  ["uei", "为"],
+  ["uan", "万"],
+  ["uen", "文"],
+  ["uang", "王"],
+  ["ueng", "瓮"],
+  ["ong", "中"],
+  ["v", "ㄩ"],
+  ["ve", "月"],
+  ["van", "元"],
+  ["vn", "云"],
+]);
 
 /**
  * Helper function to split a string on a regex, but keep the delimiters.
@@ -152,6 +232,180 @@ function normalize_text(text) {
 }
 
 /**
+ * @param {string} text
+ * @returns {string}
+ */
+function normalize_chinese_punctuation(text) {
+  return text.replace(/[，。！？；：、]/g, (match) => CHINESE_PUNCTUATION.get(match) ?? match);
+}
+
+/**
+ * @param {number} number
+ * @returns {string}
+ */
+function integer_to_chinese(number) {
+  if (number < 10) return CHINESE_DIGITS[number];
+  if (number < 100) {
+    const tens = Math.floor(number / 10);
+    const ones = number % 10;
+    return `${tens === 1 ? "" : CHINESE_DIGITS[tens]}十${ones === 0 ? "" : CHINESE_DIGITS[ones]}`;
+  }
+  if (number < 1000) {
+    const hundreds = Math.floor(number / 100);
+    const rest = number % 100;
+    return `${CHINESE_DIGITS[hundreds]}百${rest === 0 ? "" : rest < 10 ? `零${CHINESE_DIGITS[rest]}` : integer_to_chinese(rest)}`;
+  }
+  if (number < 10000) {
+    const thousands = Math.floor(number / 1000);
+    const rest = number % 1000;
+    return `${CHINESE_DIGITS[thousands]}千${rest === 0 ? "" : rest < 100 ? `零${integer_to_chinese(rest)}` : integer_to_chinese(rest)}`;
+  }
+  return String(number);
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function normalize_chinese_numbers(text) {
+  return text.replace(/\b\d{1,4}\b/g, (match) => integer_to_chinese(Number(match)));
+}
+
+/**
+ * @param {string} syllable
+ * @returns {{base: string; tone: string}|null}
+ */
+function parse_pinyin_syllable(syllable) {
+  const match = syllable.match(/^([a-züv:]+)([0-5])$/i);
+  if (!match) {
+    return null;
+  }
+  return {
+    base: match[1].toLowerCase().replace(/u:/g, "v").replace(/ü/g, "v"),
+    tone: match[2] === "0" ? "5" : match[2],
+  };
+}
+
+/**
+ * @param {string} base
+ * @returns {{initial: string; final: string}}
+ */
+function split_pinyin(base) {
+  for (const initial of ["zh", "ch", "sh"]) {
+    if (base.startsWith(initial)) {
+      return { initial, final: base.slice(initial.length) };
+    }
+  }
+  const initial = base.at(0);
+  if (ZHUYIN_INITIALS.has(initial)) {
+    return { initial, final: base.slice(1) };
+  }
+  if (base.startsWith("yi")) return { initial: "", final: base.replace(/^yi/, "i") };
+  if (base.startsWith("yu")) return { initial: "", final: base.replace(/^yu/, "v") };
+  if (base.startsWith("y")) return { initial: "", final: `i${base.slice(1)}` };
+  if (base.startsWith("wu")) return { initial: "", final: base.replace(/^wu/, "u") };
+  if (base.startsWith("w")) return { initial: "", final: `u${base.slice(1)}` };
+  return { initial: "", final: base };
+}
+
+/**
+ * @param {string} final
+ * @returns {string}
+ */
+function normalize_final(final) {
+  if (final === "iu") return "iou";
+  if (final === "ui") return "uei";
+  if (final === "un") return "uen";
+  return final;
+}
+
+/**
+ * @param {string} syllable
+ * @returns {string}
+ */
+function pinyin_to_zhuyin(syllable) {
+  const parsed = parse_pinyin_syllable(syllable);
+  if (!parsed) {
+    return syllable;
+  }
+
+  let { initial, final } = split_pinyin(parsed.base);
+  if (["j", "q", "x"].includes(initial) && final.startsWith("u")) {
+    final = `v${final.slice(1)}`;
+  }
+  final = normalize_final(final);
+
+  if (["z", "c", "s"].includes(initial) && final === "i") {
+    final = "ii";
+  } else if (["zh", "ch", "sh", "r"].includes(initial) && final === "i") {
+    final = "iii";
+  }
+
+  const initial_zhuyin = ZHUYIN_INITIALS.get(initial) ?? "";
+  const final_zhuyin = ZH_FINALS.get(final);
+  if (!final_zhuyin) {
+    return syllable;
+  }
+  return `${initial_zhuyin}${final_zhuyin}${parsed.tone}`;
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function phonemize_zh_word(text) {
+  const tokens = pinyin(text, { type: "array", toneType: "num" }).map(pinyin_to_zhuyin);
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    if (tokens[index] === "ㄧ1" && /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+4$/.test(tokens[index + 1])) {
+      tokens[index] = "ㄧ2";
+    } else if (tokens[index] === "ㄧ1" && /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+[1-3]$/.test(tokens[index + 1])) {
+      tokens[index] = "ㄧ4";
+    } else if (tokens[index] === "ㄅㄨ4" && /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+4$/.test(tokens[index + 1])) {
+      tokens[index] = "ㄅㄨ2";
+    }
+    if (CHINESE_SYLLABLE_PATTERN.test(tokens[index]) && tokens[index].endsWith("3") && CHINESE_SYLLABLE_PATTERN.test(tokens[index + 1]) && tokens[index + 1].endsWith("3")) {
+      tokens[index] = `${tokens[index].slice(0, -1)}2`;
+    }
+  }
+  return tokens.join("").replace(/\s+([,.;:!?，。！？；：、])/g, "$1").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function phonemize_zh(text) {
+  if (!CHINESE_WORD_SEGMENTER) {
+    return phonemize_zh_word(text);
+  }
+
+  return [...CHINESE_WORD_SEGMENTER.segment(text)]
+    .filter(({ segment }) => segment.trim().length > 0)
+    .map(({ segment }) => phonemize_zh_word(segment))
+    .join("/");
+}
+
+/**
+ * @param {string} text
+ * @returns {Promise<string>}
+ */
+async function phonemize_mixed_zh(text) {
+  const sections = normalize_chinese_numbers(normalize_chinese_punctuation(text)).match(/[\u4E00-\u9FFF]+|[^\u4E00-\u9FFF]+/g) ?? [];
+  const phonemes = await Promise.all(
+    sections.map(async (section) => {
+      if (/[\u4E00-\u9FFF]/.test(section)) {
+        return phonemize_zh(section);
+      }
+      if (/[A-Za-z]/.test(section)) {
+        return phonemize(section, "a", false);
+      }
+      return section;
+    }),
+  );
+  return phonemes.join(" ").replace(/\s+([,.;:!?])/g, "$1").replace(/\s+/g, " ").trim();
+}
+
+/**
  * Escapes regular expression special characters from a string by replacing them with their escaped counterparts.
  *
  * @param {string} string The string to escape.
@@ -165,9 +419,9 @@ const PUNCTUATION = ';:,.!?¡¿—…"«»“”(){}[]';
 const PUNCTUATION_PATTERN = new RegExp(`(\\s*[${escapeRegExp(PUNCTUATION)}]+\\s*)+`, "g");
 
 /**
- * Phonemize text using the eSpeak-NG phonemizer
+ * Phonemize text using the language-specific phonemizer
  * @param {string} text The text to phonemize
- * @param {"a"|"b"} language The language to use
+ * @param {"a"|"b"|"z"} language The language to use
  * @param {boolean} norm Whether to normalize the text
  * @returns {Promise<string>} The phonemized text
  */
@@ -175,6 +429,10 @@ export async function phonemize(text, language = "a", norm = true) {
   // 1. Normalize text
   if (norm) {
     text = normalize_text(text);
+  }
+
+  if (language === "z") {
+    return phonemize_mixed_zh(text);
   }
 
   // 2. Split into chunks, to ensure we preserve punctuation

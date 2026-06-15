@@ -28,7 +28,7 @@ const WEB_SPECIFIC_CONFIG = {
 };
 
 const NODE_SPECIFIC_CONFIG = {
-  external: ["@huggingface/transformers", "phonemizer"],
+  external: ["@huggingface/transformers", "phonemizer", "pinyin-pro"],
 };
 
 export default OUTPUT_CONFIGS.map((output) => {

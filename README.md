@@ -23,7 +23,7 @@ You can then generate speech as follows:
 ```js
 import { KokoroTTS } from "kokoro-js";
 
-const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
+const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {
   dtype: "q8", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
   device: "wasm", // Options: "wasm", "webgpu" (web) or "cpu" (node). If using "webgpu", we recommend using dtype="fp32".
@@ -42,7 +42,7 @@ Or if you'd prefer to stream the output, you can do that with:
 ```js
 import { KokoroTTS, TextSplitterStream } from "kokoro-js";
 
-const model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
+const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {
   dtype: "fp32", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
   // device: "webgpu", // Options: "wasm", "webgpu" (web) or "cpu" (node).
@@ -78,7 +78,7 @@ splitter.close();
 ## Voices/Samples
 
 > [!TIP]
-> You can find samples for each of the voices in the [model card](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX#samples) on Hugging Face.
+> You can find samples for each of the voices in the [model card](https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX#samples) on Hugging Face.
 
 ### American English
 

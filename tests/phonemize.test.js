@@ -44,6 +44,16 @@ const A_TEST_CASES = new Map([
   ["A.B.C", "ˈeɪbˈiːsˈiː"],
 ]);
 
+const Z_TEST_CASES = new Map([
+  ["你好", "ㄋㄧ2ㄏㄠ3"],
+  ["你好，世界！", "ㄋㄧ2ㄏㄠ3, ㄕ十4ㄐㄝ4!"],
+  ["你好世界", "ㄋㄧ2ㄏㄠ3/ㄕ十4ㄐㄝ4"],
+  ["中国", "ㄓ中1ㄍ我2"],
+  ["中国 123", "ㄓ中1ㄍ我2 ㄧ4ㄅㄞ3/ㄦ4ㄕ十2/ㄙㄢ1"],
+  ["123个", "ㄧ4ㄅㄞ3/ㄦ4ㄕ十2/ㄙㄢ1/ㄍㄜ4"],
+  ["Hello 你好", "həlˈoʊ ㄋㄧ2ㄏㄠ3"],
+]);
+
 const B_TEST_CASES = new Map([
   ["‘Hello’", "həlˈəʊ"],
   ["‘Test’ and ‘Example’", "tˈɛst and ɛɡzˈampəl"],
@@ -89,6 +99,13 @@ describe("phonemize", () => {
     for (const [input, expected] of B_TEST_CASES) {
       test(`phonemize("${input}")`, async () => {
         expect(await phonemize(input, "b")).toEqual(expected);
+      });
+    }
+  });
+  describe("zh", () => {
+    for (const [input, expected] of Z_TEST_CASES) {
+      test(`phonemize("${input}")`, async () => {
+        expect(await phonemize(input, "z")).toEqual(expected);
       });
     }
   });

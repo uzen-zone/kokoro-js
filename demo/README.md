@@ -20,6 +20,8 @@ custom_headers:
 
 A simple React + Vite application for running [Kokoro](https://github.com/hexgrad/kokoro), a frontier text-to-speech model for its size. The model runs 100% locally in the browser using [kokoro-js](https://www.npmjs.com/package/kokoro-js) and [🤗 Transformers.js](https://www.npmjs.com/package/@huggingface/transformers)!
 
+The demo prefers `webgpu + fp32` when available and automatically falls back to `wasm + fp32` if WebGPU is unavailable or model initialization fails. For Chinese, it uses the `onnx-community/Kokoro-82M-v1.1-zh-ONNX` model with `zf_001` / `zm_010` voices and additional v1.1 zh voices from the same model family.
+
 ## Getting Started
 
 Follow the steps below to set up and run the application.

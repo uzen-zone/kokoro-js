@@ -5,8 +5,8 @@ export default function App() {
   // Create a reference to the worker object.
   const worker = useRef(null);
 
-  const [inputText, setInputText] = useState("Life is like a box of chocolates. You never know what you're gonna get.");
-  const [selectedSpeaker, setSelectedSpeaker] = useState("af_heart");
+  const [inputText, setInputText] = useState("人生就像一盒巧克力，你永远不知道下一颗是什么味道。");
+  const [selectedSpeaker, setSelectedSpeaker] = useState("zf_001");
 
   const [voices, setVoices] = useState([]);
   const [status, setStatus] = useState(null);
@@ -33,7 +33,8 @@ export default function App() {
           setVoices(e.data.voices);
           break;
         case "error":
-          setError(e.data.data);
+          setError(e.data.error);
+          setStatus("ready");
           break;
         case "complete":
           const { audio, text } = e.data;
@@ -101,7 +102,7 @@ export default function App() {
               <select value={selectedSpeaker} onChange={(e) => setSelectedSpeaker(e.target.value)} className="w-full bg-gray-700/50 backdrop-blur-sm border-2 border-gray-600 rounded-xl text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 {Object.entries(voices).map(([id, voice]) => (
                   <option key={id} value={id}>
-                    {voice.name} ({voice.language === "en-us" ? "American" : "British"} {voice.gender})
+                    {voice.language === "zh" ? id : voice.name} ({voice.language === "en-us" ? "American" : voice.language === "en-gb" ? "British" : "Chinese"} {voice.gender})
                   </option>
                 ))}
               </select>
