@@ -108,7 +108,7 @@ export const VOICES = Object.freeze({
 });
 
 
-const VOICE_DATA_PATH = "/Kokoro-82M-v1.1-zh-ONNX/voices";
+const VOICE_DATA_PATH = "/kokoro/voices";
 
 /**
  *

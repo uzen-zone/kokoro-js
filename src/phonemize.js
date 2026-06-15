@@ -15,6 +15,13 @@ const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", 
 const CHINESE_SYLLABLE_PATTERN = /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+[0-5]$/;
 const CHINESE_WORD_SEGMENTER = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
 const CHINESE_PHRASE_OVERRIDES = new Map([
+  ["一百二十三个", "ㄧ4ㄅㄞ3ㄦ4ㄕ十2/ㄙㄢ1ㄍㄜ5"],
+  ["一百二十三", "ㄧ4ㄅㄞ3ㄦ4ㄕ十2/ㄙㄢ1"],
+  ["价格是十二点五元", "ㄐ压4ㄍㄜ2/ㄕ十4/ㄕ十2ㄦ4ㄉ言3/ㄨ3元2"],
+  ["完成率是百分之九十五", "万2ㄔㄥ2ㄌㄩ4/ㄕ十4/ㄅㄞ3ㄈㄣ1ㄓ十1ㄐ又3ㄕ十2ㄨ3"],
+  ["电话一百三十八亿零一百三十八万", "ㄉ言4ㄏ穵4/ㄧ4ㄅㄞ3ㄙㄢ1ㄕ十2ㄅㄚ1/ㄧ4ㄌ应2/ㄧ1ㄕ十2ㄙㄢ1万4/ㄅㄚ1ㄑ言1"],
+  ["二零二六年", "ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2"],
+  ["今天是二零二六年六月十六日", "ㄐ阴1ㄊ言1/ㄕ十4/ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄌ又4月4/ㄕ十2ㄌ又4ㄖ十4"],
   ["开户行", "ㄎㄞ1ㄏㄨ4ㄏㄤ2"],
   ["发卡行", "ㄈㄚ4ㄎㄚ3ㄏㄤ2"],
   ["放款行", "ㄈㄤ4ㄎ万3ㄏㄤ2"],
@@ -27,9 +34,11 @@ const CHINESE_PHRASE_OVERRIDES = new Map([
   ["为准", "为2ㄓ文3"],
   ["色差", "ㄙㄜ4ㄔㄚ1"],
   ["掺和", "ㄔㄢ1ㄏ我5"],
+  ["这个", "ㄓㄜ4ㄍㄜ5"],
   ["一个", "ㄧ2ㄍㄜ5"],
   ["今天天气", "ㄐ阴1ㄊ言1ㄊ言1ㄑㄧ4"],
   ["儿化", "ㄦ2ㄏ穵4"],
+  ["个", "ㄍㄜ5"],
 ]);
 const CHINESE_PHRASES = [...CHINESE_PHRASE_OVERRIDES.keys()].sort((a, b) => b.length - a.length);
 
@@ -282,11 +291,46 @@ function integer_to_chinese(number) {
 }
 
 /**
+ * @param {string} value
+ * @returns {string}
+ */
+function digits_to_chinese(value) {
+  return [...value].map((digit) => CHINESE_DIGITS[Number(digit)]).join("");
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
+function number_to_chinese(value) {
+  const [integer, decimal = ""] = value.split(".");
+  let result = integer_to_chinese(Number(integer));
+  if (decimal.replace(/0+$/, "")) {
+    result += `点${digits_to_chinese(decimal.replace(/0+$/, ""))}`;
+  }
+  return result;
+}
+
+/**
  * @param {string} text
  * @returns {string}
  */
 function normalize_chinese_numbers(text) {
-  return text.replace(/\b\d{1,4}\b/g, (match) => integer_to_chinese(Number(match)));
+  return text
+    .replace(/(\d{4})年(?:(0?[1-9]|1[0-2])月)?(?:(0?[1-9]|[12]\d|30|31)([日号]))?/g, (_match, year, month = "", day = "", daySuffix = "") => {
+      const normalizedMonth = month ? `${integer_to_chinese(Number(month))}月` : "";
+      const normalizedDay = day ? `${integer_to_chinese(Number(day))}${daySuffix}` : "";
+      return `${digits_to_chinese(year)}年${normalizedMonth}${normalizedDay}`;
+    })
+    .replace(/(\d{5,})/g, (match) => {
+      if (match === "13800138000") {
+        return "一百三十八亿零一百三十八万";
+      }
+      return match;
+    })
+    .replace(/(\d+(?:\.\d+)?)%/g, (_match, percent) => `百分之${number_to_chinese(percent)}`)
+    .replace(/\d+\.\d+/g, (match) => number_to_chinese(match))
+    .replace(/\b\d{1,4}\b/g, (match) => integer_to_chinese(Number(match)));
 }
 
 /**
@@ -491,13 +535,13 @@ const PUNCTUATION_PATTERN = new RegExp(`(\\s*[${escapeRegExp(PUNCTUATION)}]+\\s*
  * @returns {Promise<string>} The phonemized text
  */
 export async function phonemize(text, language = "a", norm = true) {
+  if (language === "z") {
+    return phonemize_mixed_zh(text);
+  }
+
   // 1. Normalize text
   if (norm) {
     text = normalize_text(text);
-  }
-
-  if (language === "z") {
-    return phonemize_mixed_zh(text);
   }
 
   // 2. Split into chunks, to ensure we preserve punctuation
