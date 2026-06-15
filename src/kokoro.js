@@ -8,7 +8,7 @@ const SAMPLE_RATE = 24000;
 
 /**
  * @typedef {Object} GenerateOptions
- * @property {keyof typeof VOICES} [voice="af_heart"] The voice
+ * @property {keyof typeof VOICES} [voice="zf_001"] The voice
  * @property {number} [speed=1] The speaking speed
  */
 
@@ -71,7 +71,7 @@ export class KokoroTTS {
    * @param {GenerateOptions} options Additional options
    * @returns {Promise<RawAudio>} The generated audio
    */
-  async generate(text, { voice = "af_heart", speed = 1 } = {}) {
+  async generate(text, { voice = "zf_001", speed = 1 } = {}) {
     const language = this._validate_voice(voice);
 
     const phonemes = await phonemize(text, language);
@@ -88,7 +88,7 @@ export class KokoroTTS {
    * @param {GenerateOptions} options Additional options
    * @returns {Promise<RawAudio>} The generated audio
    */
-  async generate_from_ids(input_ids, { voice = "af_heart", speed = 1 } = {}) {
+  async generate_from_ids(input_ids, { voice = "zf_001", speed = 1 } = {}) {
     // Select voice style based on number of input tokens
     const num_tokens = Math.min(Math.max(input_ids.dims.at(-1) - 2, 0), 509);
 
@@ -115,7 +115,7 @@ export class KokoroTTS {
    * @param {StreamGenerateOptions} options Additional options
    * @returns {AsyncGenerator<{text: string, phonemes: string, audio: RawAudio}, void, void>}
    */
-  async *stream(text, { voice = "af_heart", speed = 1, split_pattern = null } = {}) {
+  async *stream(text, { voice = "zf_001", speed = 1, split_pattern = null } = {}) {
     const language = this._validate_voice(voice);
 
     /** @type {TextSplitterStream} */
@@ -155,6 +155,12 @@ export const env = {
   },
   get cacheDir() {
     return hf.cacheDir
+  },
+  set allowLocalModels(value) {
+    hf.allowLocalModels = value;
+  },
+  get allowLocalModels() {
+    return hf.allowLocalModels;
   },
   set wasmPaths(value) {
     hf.backends.onnx.wasm.wasmPaths = value;

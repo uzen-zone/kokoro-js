@@ -14,6 +14,24 @@ const CHINESE_PUNCTUATION = new Map([
 const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
 const CHINESE_SYLLABLE_PATTERN = /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+[0-5]$/;
 const CHINESE_WORD_SEGMENTER = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
+const CHINESE_PHRASE_OVERRIDES = new Map([
+  ["开户行", "ㄎㄞ1ㄏㄨ4ㄏㄤ2"],
+  ["发卡行", "ㄈㄚ4ㄎㄚ3ㄏㄤ2"],
+  ["放款行", "ㄈㄤ4ㄎ万3ㄏㄤ2"],
+  ["茧行", "ㄐ言3ㄏㄤ2"],
+  ["行号", "ㄏㄤ2ㄏㄠ4"],
+  ["各地", "ㄍㄜ4ㄉㄧ5"],
+  ["借还款", "ㄐㄝ4/ㄏㄞ2ㄎ万3"],
+  ["时间为准", "ㄕ十2ㄐ言1/为2ㄓ文3"],
+  ["时间为", "ㄕ十2ㄐ言1/为2"],
+  ["为准", "为2ㄓ文3"],
+  ["色差", "ㄙㄜ4ㄔㄚ1"],
+  ["掺和", "ㄔㄢ1ㄏ我5"],
+  ["一个", "ㄧ2ㄍㄜ5"],
+  ["今天天气", "ㄐ阴1ㄊ言1ㄊ言1ㄑㄧ4"],
+  ["儿化", "ㄦ2ㄏ穵4"],
+]);
+const CHINESE_PHRASES = [...CHINESE_PHRASE_OVERRIDES.keys()].sort((a, b) => b.length - a.length);
 
 const ZHUYIN_INITIALS = new Map([
   ["b", "ㄅ"],
@@ -374,15 +392,62 @@ function phonemize_zh_word(text) {
  * @param {string} text
  * @returns {string}
  */
-function phonemize_zh(text) {
-  if (!CHINESE_WORD_SEGMENTER) {
-    return phonemize_zh_word(text);
+function phonemize_zh_text(text) {
+  const parts = [];
+  let index = 0;
+
+  while (index < text.length) {
+    let matchedPhrase = null;
+    for (const phrase of CHINESE_PHRASES) {
+      if (text.startsWith(phrase, index)) {
+        matchedPhrase = phrase;
+        break;
+      }
+    }
+
+    if (matchedPhrase) {
+      parts.push(CHINESE_PHRASE_OVERRIDES.get(matchedPhrase));
+      index += matchedPhrase.length;
+      continue;
+    }
+
+    let nextIndex = index + 1;
+    while (nextIndex < text.length) {
+      let hasOverride = false;
+      for (const phrase of CHINESE_PHRASES) {
+        if (text.startsWith(phrase, nextIndex)) {
+          hasOverride = true;
+          break;
+        }
+      }
+      if (hasOverride) {
+        break;
+      }
+      nextIndex += 1;
+    }
+
+    const textChunk = text.slice(index, nextIndex);
+    const phonemes = CHINESE_WORD_SEGMENTER
+      ? [...CHINESE_WORD_SEGMENTER.segment(textChunk)]
+        .filter(({ segment }) => segment.trim().length > 0)
+        .map(({ segment }) => phonemize_zh_word(segment))
+        .join("/")
+      : phonemize_zh_word(textChunk);
+    if (phonemes) {
+      parts.push(phonemes);
+    }
+    index = nextIndex;
   }
 
-  return [...CHINESE_WORD_SEGMENTER.segment(text)]
-    .filter(({ segment }) => segment.trim().length > 0)
-    .map(({ segment }) => phonemize_zh_word(segment))
-    .join("/");
+  return parts.join("/");
+}
+
+/**
+ * @param {string} text
+ * @returns {string}
+ */
+function phonemize_zh(text) {
+  return phonemize_zh_text(text);
 }
 
 /**
