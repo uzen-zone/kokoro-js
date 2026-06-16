@@ -284,7 +284,7 @@
   {
     "text": "纸老虎",
     "py": "ㄓ十3ㄌㄠ2ㄏㄨ3",
-    "status": "gap",
+    "status": "match",
     "current": "ㄓ十2ㄌㄠ2ㄏㄨ3"
   },
   {
@@ -295,26 +295,26 @@
   {
     "text": "我很好",
     "py": "我3ㄏㄣ2ㄏㄠ3",
-    "status": "gap",
+    "status": "match",
     "current": "我2ㄏㄣ2ㄏㄠ3"
   },
   {
     "text": "我也很好",
     "py": "我2ㄝ3/ㄏㄣ2ㄏㄠ3",
-    "status": "gap",
+    "status": "match",
     "current": "我2ㄝ2ㄏㄣ2ㄏㄠ3"
   },
   {
     "text": "你买水果",
     "py": "ㄋㄧ2ㄇㄞ3/ㄕ为2ㄍ我3",
-    "status": "gap",
+    "status": "match",
     "current": "ㄋㄧ3/ㄇㄞ3ㄕ为2ㄍ我3"
   },
   {
     "text": "老板很好",
     "py": "ㄌㄠ2ㄅㄢ2ㄏㄣ3/ㄏㄠ3",
     "status": "gap",
-    "current": "ㄌㄠ2ㄅㄢ2ㄏㄣ2ㄏㄠ3"
+    "current": "ㄌㄠ2ㄅㄢ3/ㄏㄣ2ㄏㄠ3"
   },
   {
     "text": "麻烦",

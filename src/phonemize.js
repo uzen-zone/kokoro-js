@@ -58,7 +58,6 @@ const CHINESE_PHRASE_OVERRIDES = new Map([
   ["媳妇儿", "ㄒㄧ2ㄈㄨR5"],
   ["少儿", "ㄕㄠ4ㄦ2"],
   ["不怕困难", "ㄅㄨ2ㄆㄚ4ㄎ文4ㄋㄢ5"],
-  ["买水果", "ㄇㄞ3ㄕ为2ㄍ我3"],
   ["两只小狗", "ㄌ阳2ㄓ十3/ㄒ要2ㄍㄡ3"],
   ["一点一支持", "ㄧ4ㄉ言3/ㄧ4ㄓ十1ㄔ十2"],
   ["长长的路", "ㄔㄤ2ㄔㄤ2ㄉㄜ5/ㄌㄨ4"],
@@ -476,6 +475,9 @@ function phonemize_zh_word(text) {
     tokens[1] = "ㄅㄨ5";
   }
 
+  // Save original tones for multi-char sandhi correction
+  const origTone3 = tokens.map((t) => (CHINESE_SYLLABLE_PATTERN.test(t) ? t.endsWith("3") : false));
+
   for (let index = 0; index < tokens.length - 1; index += 1) {
     // Ordinal 第一: 一 keeps tone 1
     if (text.startsWith("第一") && index === 1 && tokens[index] === "ㄧ1") {
@@ -506,6 +508,24 @@ function phonemize_zh_word(text) {
     if (CHINESE_SYLLABLE_PATTERN.test(last)) {
       tokens[tokens.length - 1] = `${last.slice(0, -1)}5`;
     }
+  }
+
+  // 3-char all-tone-3 sandhi correction (Python _three_sandhi mono+di / di+mono)
+  if (tokens.length === 3 && origTone3.every(Boolean)) {
+    const segs = CHINESE_WORD_SEGMENTER
+      ? [...CHINESE_WORD_SEGMENTER.segment(text)].filter((s) => s.segment.trim().length > 0).map((s) => s.segment)
+      : [text];
+    const isMonoDi = segs.length === 2 && segs[0].length === 1 && segs[1].length === 2;
+    if (isMonoDi) {
+      tokens[0] = tokens[0].slice(0, -1) + "3";
+    }
+  }
+
+  // 4-char all-tone-3: split 2+2, first of each sub → tone 2 (Python _three_sandhi)
+  if (tokens.length === 4 && origTone3.every(Boolean) && tokens[3].endsWith("3")) {
+    tokens[0] = tokens[0].slice(0, -1) + "2";
+    tokens[2] = tokens[2].slice(0, -1) + "2";
+    if (tokens[1].endsWith("2")) tokens[1] = tokens[1].slice(0, -1) + "3";
   }
 
   // Neutral tone: reduplication (AA pattern for n./v./a. POS → second syllable tone 5)
@@ -693,14 +713,14 @@ function phonemize_zh_text(text) {
         continue;
       }
 
-      // Merge consecutive tone-3 segments (any length) for proper tone sandhi
+      // Merge consecutive tone-3 segments (capped at total ≤ 3, matching Python)
       if (merged.length > 0) {
         const prev = merged[merged.length - 1];
         const prevLastChar = prev[prev.length - 1];
         const currFirstChar = current[0];
         const prevPinyin = pinyin(prevLastChar, { toneType: "num" });
         const currPinyin = pinyin(currFirstChar, { toneType: "num" });
-        if (prevPinyin.endsWith("3") && currPinyin.endsWith("3")) {
+        if (prevPinyin.endsWith("3") && currPinyin.endsWith("3") && prev.length + current.length <= 3) {
           merged[merged.length - 1] += current;
           continue;
         }
