@@ -14,8 +14,10 @@
 - Updated demo defaults to Chinese text and v1.1 zh voices.
 - Aligned Chinese mixed-English fallback with Python `misaki` v1.1 golden output by emitting `❓` for English spans.
 - Documented the `fp16` ONNX diagnostic result while keeping the demo default on `fp32`.
+- Expanded Chinese golden coverage for more `misaki` v1.1 segmentation, tone sandhi, erhua, numeric, and mixed-English cases.
 
 ### Fixed
 - Prevented failed voice downloads from being treated as voice data.
 - Avoided Chinese text falling through to English phonemization.
 - Matched the remaining Chinese golden corpus gaps, including `小院儿` erhua handling.
+- Matched additional Python `misaki` v1.1 outputs for focused phrase, erhua, and number-normalization gaps.
