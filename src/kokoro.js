@@ -132,6 +132,7 @@ export class KokoroTTS {
           .filter((chunk) => chunk.length > 0)
         : [text];
       splitter.push(...chunks);
+      splitter.close();
     } else {
       throw new Error("Invalid input type. Expected string or TextSplitterStream.");
     }

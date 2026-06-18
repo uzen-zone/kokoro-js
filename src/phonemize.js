@@ -776,7 +776,7 @@ async function phonemize_mixed_zh(text) {
         return phonemize_zh(section);
       }
       if (/[A-Za-z]/.test(section)) {
-        return section.replace(/[A-Za-z][A-Za-z '-]*/g, "❓");
+        return phonemize(section, "a");
       }
       return section;
     }),
