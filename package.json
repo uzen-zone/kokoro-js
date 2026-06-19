@@ -34,6 +34,14 @@
   ],
   "license": "Apache-2.0",
   "description": "High-quality text-to-speech for the web",
+  "homepage": "https://github.com/uzen-zone/kokoro-js#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uzen-zone/kokoro-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uzen-zone/kokoro-js/issues"
+  },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
     "phonemizer": "^1.2.1",
