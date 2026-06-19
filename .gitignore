@@ -2,6 +2,7 @@ node_modules/
 dist
 types
 ! demo/public/kokoro/voices/**
+demo/public/kokoro/onnx/
 
 # Ignore voice .bin files in the source package dir, but NOT in the demo
 /voices/
