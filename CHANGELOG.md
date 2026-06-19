@@ -3,9 +3,22 @@
 ## Unreleased
 
 ### Added
+- Added `_splitLongText()` and `maxChunkLength` option (default 200) for `stream()` to handle long text chunks at punctuation boundaries.
+- Added `kokoro.js/voices/` directory with 103 local voice `.bin` files for Node.js loading (mirrors `demo/public/kokoro/voices/`).
+- Added Chinese polyphone phrase overrides for 14 entries (开户行, 发卡行, 行号, 各地, 色差, 掺和, 借还款, 还款成功, 时间为准, etc.) to fix G2P disambiguation bypassing `Intl.Segmenter` fragmentation.
+- Added `normalize_chinese_punctuation()` for full-width bracket/quote normalization.
+- Added `PLAN.md` with the current Chinese extension status, known `misaki` alignment gaps, and a prioritized backlog for `zh_normalization` parity.
+
+### Changed
+- Refactored demo worker and UI: removed duplicate `splitLongText`/`splitTextForSpeech`, delegate chunking to `tts.stream()`. Article rendering simplified to paragraph-level with improved highlight matching.
+- Replaced `customPinyin()` approach (broken in pinyin-pro v3.28.1, produces `ge4`→`ge40`) with direct zhuyin overrides in `CHINESE_PHRASE_OVERRIDES`.
+- Refactored Chinese polyphone disambiguation to hybrid approach: **post-segmentation phrase merging** + limited override table. Added `POLYPHONE_MERGE_PHRASES` Set and `mergePhrases()` to rejoin known phrases split by `Intl.Segmenter` before passing to `pinyin-pro`. Only entries where pinyin-pro itself gives wrong output remain in override table.
+
+### Fixed
+- Fixed `借还款`/`还款成功` zhuyin from `hái` (还是) to `huán` (归还). Updated golden corpus accordingly.
 - Added Chinese phonemization for `kokoro.js` using v1.1 zh tokenizer symbols.
 - Added numbered v1.1 zh ONNX voices and updated the default voice data URL.
-- Added Chinese phonemizer regression tests and a Chinese extension plan under `docs/`.
+- Added Chinese phonemizer regression tests and a Chinese extension plan.
 - Added demo support for `onnx-community/Kokoro-82M-v1.1-zh-ONNX` with WebGPU-first initialization and wasm fallback.
 - Added MUST_NEUTRAL_TONE_WORDS (417 words ported from Python `tone_sandhi.py`) for automatic neutral-tone marking.
 - Added reduplication-based neutral tone detection (AA pattern, POS-filtered to exclude adverbs like `慢慢`).
@@ -23,17 +36,17 @@
 - Upgraded `@huggingface/transformers` to `^4.2.0` for improved WebGPU behavior.
 - Made the package build script Windows-compatible.
 - Updated demo defaults to Chinese text and v1.1 zh voices.
-- Aligned Chinese mixed-English fallback with Python `misaki` v1.1 golden output by emitting `❓` for English spans.
+- Expanded Chinese mixed-English handling: JS currently phonemizes English spans with the existing English path, while the golden fixture records Python `misaki` `unk=❓` gaps where behavior intentionally differs.
 - Documented the `fp16` ONNX diagnostic result while keeping the demo default on `fp32`.
 - Expanded Chinese golden coverage for more `misaki` v1.1 segmentation, tone sandhi, erhua, numeric, and mixed-English cases.
 - Replaced single-phrase overrides with generic tone sandhi rules from Python `tone_sandhi.py`.
 - Capped tone-3 pre-merge at total length ≤3 to prevent over-merging.
+- Documented remaining Python `misaki.zh_normalization` parity gaps, including `HH:MM` time expressions, slash/dash dates, fractions, ranges, phones, temperatures, and measurements.
 
 ### Fixed
 - Prevented failed voice downloads from being treated as voice data.
 - Avoided Chinese text falling through to English phonemization.
-- Matched the remaining Chinese golden corpus gaps, including `小院儿` erhua handling.
-- Matched additional Python `misaki` v1.1 outputs for focused phrase, erhua, and number-normalization gaps.
+- Matched additional Python `misaki` v1.1 outputs for focused phrase, erhua, and number-normalization gaps; the current golden corpus is 149 entries with 115 match and 34 recorded gaps.
 - Fixed erhua R placement: R now inserted before tone number (e.g. `元R4` not `元4R`).
 - Fixed `地` reading when used as structural particle (e.g. `慢慢地`→de5 not di4).
 - Fixed `一` tone in Chinese digit sequences (e.g. `一百`→yi1, not yi4 from pinyin-pro sandhi).

@@ -108,7 +108,12 @@ export const VOICES = Object.freeze({
 });
 
 
-const VOICE_DATA_PATH = "/kokoro/voices";
+let voiceDataPath = "/kokoro/voices";
+
+/** Override the base path for loading voice data files. */
+export function setVoicePath(path) {
+  voiceDataPath = path;
+}
 
 /**
  *
@@ -117,23 +122,24 @@ const VOICE_DATA_PATH = "/kokoro/voices";
  */
 async function getVoiceFile(id) {
   if (fs && Object.hasOwn(fs, 'readFile')) {
-    const dirname = typeof __dirname !== "undefined" ? __dirname : import.meta.dirname;
-    const file = path.resolve(dirname, `../voices/${id}.bin`);
+    const file = path.resolve(voiceDataPath, `${id}.bin`);
     const { buffer } = await fs.readFile(file);
     return buffer;
   }
 
-  const url = `${VOICE_DATA_PATH}/${id}.bin`;
+  const url = `${voiceDataPath}/${id}.bin`;
 
   let cache;
-  try {
-    cache = await caches.open("kokoro-voices");
-    const cachedResponse = await cache.match(url);
-    if (cachedResponse) {
-      return await cachedResponse.arrayBuffer();
+  if (typeof caches !== "undefined") {
+    try {
+      cache = await caches.open("kokoro-voices");
+      const cachedResponse = await cache.match(url);
+      if (cachedResponse) {
+        return await cachedResponse.arrayBuffer();
+      }
+    } catch {
+      cache = null;
     }
-  } catch (e) {
-    console.warn("Unable to open cache", e);
   }
 
   // No cache, or cache failed to open. Fetch the local public voice file.
@@ -153,7 +159,7 @@ async function getVoiceFile(id) {
         }),
       );
     } catch (e) {
-      console.warn("Unable to cache file", e);
+      // Cache failures should not affect inference.
     }
   }
 

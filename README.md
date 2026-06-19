@@ -105,6 +105,47 @@ splitter.close();
 | am_puck      | 🚹     | B              | H hours           | C+            |
 | am_santa     | 🚹     | C              | _M minutes_ 🤏    | D-            |
 
+### Chinese (Mandarin) — v1.1 zh voices
+
+| Name     | Gender | Name    | Gender | Name    | Gender |
+| -------- | ------ | ------- | ------ | ------- | ------ |
+| zf_001   | 🚺     | zf_046  | 🚺     | zm_052  | 🚹     |
+| zf_002   | 🚺     | zf_047  | 🚺     | zm_053  | 🚹     |
+| zf_003   | 🚺     | zf_048  | 🚺     | zm_054  | 🚹     |
+| zf_004   | 🚺     | zf_049  | 🚺     | zm_055  | 🚹     |
+| zf_005   | 🚺     | zf_051  | 🚺     | zm_056  | 🚹     |
+| zf_006   | 🚺     | zf_059  | 🚺     | zm_057  | 🚹     |
+| zf_007   | 🚺     | zf_060  | 🚺     | zm_058  | 🚹     |
+| zf_008   | 🚺     | zf_067  | 🚺     | zm_061  | 🚹     |
+| zf_017   | 🚺     | zf_070  | 🚺     | zm_062  | 🚹     |
+| zf_018   | 🚺     | zf_071  | 🚺     | zm_063  | 🚹     |
+| zf_019   | 🚺     | zf_072  | 🚺     | zm_064  | 🚹     |
+| zf_021   | 🚺     | zf_073  | 🚺     | zm_065  | 🚹     |
+| zf_022   | 🚺     | zf_074  | 🚺     | zm_066  | 🚹     |
+| zf_023   | 🚺     | zf_075  | 🚺     | zm_068  | 🚹     |
+| zf_024   | 🚺     | zf_076  | 🚺     | zm_069  | 🚹     |
+| zf_026   | 🚺     | zf_077  | 🚺     | zm_080  | 🚹     |
+| zf_027   | 🚺     | zf_078  | 🚺     | zm_081  | 🚹     |
+| zf_028   | 🚺     | zf_079  | 🚺     | zm_082  | 🚹     |
+| zf_032   | 🚺     | zf_083  | 🚺     | zm_089  | 🚹     |
+| zf_036   | 🚺     | zf_084  | 🚺     | zm_091  | 🚹     |
+| zf_038   | 🚺     | zf_085  | 🚺     | zm_095  | 🚹     |
+| zf_039   | 🚺     | zf_086  | 🚺     | zm_096  | 🚹     |
+| zf_040   | 🚺     | zf_087  | 🚺     | zm_097  | 🚹     |
+| zf_042   | 🚺     | zf_088  | 🚺     | zm_098  | 🚹     |
+| zf_043   | 🚺     | zf_090  | 🚺     | zm_100  | 🚹     |
+| zf_044   | 🚺     | zf_092  | 🚺     | zm_009  | 🚹     |
+| zf_092   | 🚺     | zf_093  | 🚺     | zm_010  | 🚹     |
+| zf_094   | 🚺     | zf_099  | 🚺     | zm_011  | 🚹     |
+| zm_012   | 🚹     | zm_020  | 🚹     | zm_029  | 🚹     |
+| zm_013   | 🚹     | zm_025  | 🚹     | zm_030  | 🚹     |
+| zm_014   | 🚹     | zm_031  | 🚹     | zm_033  | 🚹     |
+| zm_015   | 🚹     | zm_034  | 🚹     | zm_035  | 🚹     |
+| zm_016   | 🚹     | zm_037  | 🚹     | zm_041  | 🚹     |
+| zm_045   | 🚹     | zm_050  | 🚹     |         |        |
+
+Use with v1.1 zh model: `onnx-community/Kokoro-82M-v1.1-zh-ONNX`.
+
 ### British English
 
 | Name        | Traits | Target Quality | Training Duration | Overall Grade |

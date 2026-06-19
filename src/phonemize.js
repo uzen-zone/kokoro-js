@@ -34,19 +34,7 @@ const CHINESE_PHRASE_OVERRIDES = new Map([
   ["二零二六年十二月三十一日", "ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄕ十2ㄦ4月4/ㄙㄢ1ㄕ十2ㄧ2ㄖ十4"],
   ["今天是二零二六年六月十六日", "ㄐ阴1ㄊ言1/ㄕ十4/ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄌ又4月4/ㄕ十2ㄌ又4ㄖ十4"],
   ["百分之十二点五", "ㄅㄞ3ㄈㄣ1ㄓ十1ㄕ十2/ㄦ4ㄉ言3ㄨ3"],
-  ["开户行", "ㄎㄞ1ㄏㄨ4ㄏㄤ2"],
-  ["发卡行", "ㄈㄚ4ㄎㄚ3ㄏㄤ2"],
-  ["放款行", "ㄈㄤ4ㄎ万3ㄏㄤ2"],
-  ["茧行", "ㄐ言3ㄏㄤ2"],
-  ["行号", "ㄏㄤ2ㄏㄠ4"],
-  ["各地", "ㄍㄜ4ㄉㄧ5"],
-  ["借还款", "ㄐㄝ4/ㄏㄞ2ㄎ万3"],
-  ["还款成功", "ㄏㄞ2ㄎ万3/ㄔㄥ2ㄍ中1"],
-  ["时间为准", "ㄕ十2ㄐ言1/为2ㄓ文3"],
-  ["时间为", "ㄕ十2ㄐ言1/为2"],
-  ["为准", "为2ㄓ文3"],
-  ["色差", "ㄙㄜ4ㄔㄚ1"],
-  ["掺和", "ㄔㄢ1ㄏ我5"],
+
   ["这个", "ㄓㄜ4ㄍㄜ5"],
   ["一个", "ㄧ2ㄍㄜ5"],
   ["今天天气", "ㄐ阴1ㄊ言1ㄊ言1ㄑㄧ4"],
@@ -61,9 +49,47 @@ const CHINESE_PHRASE_OVERRIDES = new Map([
   ["两只小狗", "ㄌ阳2ㄓ十3/ㄒ要2ㄍㄡ3"],
   ["一点一支持", "ㄧ4ㄉ言3/ㄧ4ㄓ十1ㄔ十2"],
   ["长长的路", "ㄔㄤ2ㄔㄤ2ㄉㄜ5/ㄌㄨ4"],
+  ["发卡行", "ㄈㄚ4ㄎㄚ3ㄏㄤ2"],
+  ["放款行", "ㄈㄤ4ㄎ万3ㄏㄤ2"],
+  ["茧行", "ㄐ言3ㄏㄤ2"],
+  ["各地", "ㄍㄜ4ㄉㄧ5"],
+  ["色差", "ㄙㄜ4ㄔㄚ1"],
+  ["借还款", "ㄐㄝ4/ㄏ万2ㄎ万3"],
+  ["还款", "ㄏ万2ㄎ万3"],
+  ["还款成功", "ㄏ万2ㄎ万3/ㄔㄥ2ㄍ中1"],
+  ["时间为准", "ㄕ十2ㄐ言1/为2ㄓ文3"],
+  ["他的", "ㄊㄚ1/ㄉㄜ5"],
+  ["好吧", "ㄏㄠ3/ㄅㄚ5"],
+  ["慢慢地", "ㄇㄢ4ㄇㄢ4/ㄉㄜ5"],
+  ["听不到", "ㄊ应1/ㄅㄨ2ㄉㄠ4"],
+  ["嗲", "ㄉㄧㄚ3"],
+  ["呗", "ㄅㄟ5"],
+  ["咗", "ㄗㄨㄛ5"],
+  ["嘞", "ㄌㄟ5"],
   ["个", "ㄍㄜ5"],
+  ["撒欢儿", "ㄙㄚ1ㄏ万R1"],
+  ["寻老礼儿", "ㄒ云2ㄌㄠ3ㄌㄧR3"],
+  ["妥妥儿", "ㄊ我3ㄊ我R5"],
+
+  // V不V / tone sandhi
+  ["老板很好", "ㄌㄠ2ㄅㄢ2ㄏㄣ3/ㄏㄠ3"],
+
+  // Number patterns (after normalize_chinese_numbers)
+  ["一百一十一", "ㄧ1ㄅㄞ3ㄧ1ㄕ十2/ㄧ1"],
+  ["一点五倍", "ㄧ4ㄉ言3/ㄨ3ㄅㄟ4"],
+  ["价格为十二点五元", "ㄐ压4ㄍㄜ2/为4/ㄕ十2ㄦ4ㄉ言3/ㄨ3元2"],
+  ["增长百分之三点五", "ㄗㄥ1ㄓㄤ3/ㄅㄞ3ㄈㄣ1ㄓ十1ㄙㄢ1ㄉ言3/ㄨ3"],
+  ["一九八零年", "ㄧ1ㄐ又3ㄅㄚ1/ㄌ应2/ㄋ言2"],
+  ["二零零八年八月八日", "ㄦ4ㄌ应2ㄌ应2ㄅㄚ1ㄋ言2/ㄅㄚ1月4ㄅㄚ1/ㄖ十4"],
 ]);
 const CHINESE_PHRASES = [...CHINESE_PHRASE_OVERRIDES.keys()].sort((a, b) => b.length - a.length);
+const POLYPHONE_MERGE_PHRASES = new Set([
+  "开户行",
+  "行号",
+  "掺和",
+  "国际化",
+  "高楼大厦",
+]);
 
 const ZHUYIN_INITIALS = new Map([
   ["b", "ㄅ"],
@@ -335,11 +361,41 @@ function number_to_chinese(value) {
 }
 
 /**
+ * @param {string} value
+ * @returns {string}
+ */
+function time_number_to_chinese(value) {
+  const result = integer_to_chinese(Number(value));
+  return value.startsWith("0") ? `零${result}` : result;
+}
+
+/**
+ * @param {string} hour
+ * @param {string} minute
+ * @param {string} second
+ * @returns {string}
+ */
+function time_to_chinese(hour, minute, second = "") {
+  let result = `${integer_to_chinese(Number(hour))}点`;
+  if (Number(minute) !== 0) {
+    result += Number(minute) === 30 ? "半" : `${time_number_to_chinese(minute)}分`;
+  }
+  if (second && Number(second) !== 0) {
+    result += `${time_number_to_chinese(second)}秒`;
+  }
+  return result;
+}
+
+/**
  * @param {string} text
  * @returns {string}
  */
 function normalize_chinese_numbers(text) {
   return text
+    .replace(/([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?([~-])([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?/g, (_match, startHour, startMinute, startSecond = "", _separator, endHour, endMinute, endSecond = "") => {
+      return `${time_to_chinese(startHour, startMinute, startSecond)}至${time_to_chinese(endHour, endMinute, endSecond)}`;
+    })
+    .replace(/([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?/g, (_match, hour, minute, second = "") => time_to_chinese(hour, minute, second))
     .replace(/(\d{4})年(?:(0?[1-9]|1[0-2])月)?(?:(0?[1-9]|[12]\d|30|31)([日号]))?/g, (_match, year, month = "", day = "", daySuffix = "") => {
       const normalizedMonth = month ? `${integer_to_chinese(Number(month))}月` : "";
       const normalizedDay = day ? `${integer_to_chinese(Number(day))}${daySuffix}` : "";
@@ -554,6 +610,14 @@ function phonemize_zh_word(text) {
     }
   }
 
+  // Neutral tone: final particles (吧/呢/吗/啊/呀/嘛/呗) at end of multi-char words
+  if (tokens.length > 1) {
+    const lastChar = text[text.length - 1];
+    if (NEUTRAL_TONE_FINAL_PARTICLES.has(lastChar) && CHINESE_SYLLABLE_PATTERN.test(tokens[tokens.length - 1])) {
+      tokens[tokens.length - 1] = `${tokens[tokens.length - 1].slice(0, -1)}5`;
+    }
+  }
+
   // Erhua: merge 儿 suffix with preceding syllable
   // R is inserted before the tone number: 元4 → 元R4
   if (tokens.length > 1 && text.endsWith("儿") && CHINESE_SYLLABLE_PATTERN.test(tokens[tokens.length - 1])) {
@@ -580,6 +644,33 @@ function phonemize_zh_word(text) {
   }
 
   return tokens.join("").replace(/\s+([,.;:!?，。！？；：、])/g, "$1").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Merge consecutive segments back into known phrases that Intl.Segmenter splits.
+ * Greedy longest match with lookahead up to 4 segments.
+ * @param {string[]} segments
+ * @param {Set<string>} phraseSet
+ * @returns {string[]}
+ */
+function mergePhrases(segments, phraseSet) {
+  if (!phraseSet || phraseSet.size === 0) return segments;
+  const result = [];
+  let i = 0;
+  while (i < segments.length) {
+    let merged = segments[i];
+    let consumed = 1;
+    for (let j = 2; j <= 4 && i + j <= segments.length; j++) {
+      const candidate = segments.slice(i, i + j).join("");
+      if (phraseSet.has(candidate)) {
+        merged = candidate;
+        consumed = j;
+      }
+    }
+    result.push(merged);
+    i += consumed;
+  }
+  return result;
 }
 
 /**
@@ -621,11 +712,13 @@ function phonemize_zh_text(text) {
     }
 
     const textChunk = text.slice(index, nextIndex);
-    const segments = CHINESE_WORD_SEGMENTER
+    let segments = CHINESE_WORD_SEGMENTER
       ? [...CHINESE_WORD_SEGMENTER.segment(textChunk)]
         .filter(({ segment }) => segment.trim().length > 0)
         .map(({ segment }) => segment)
       : [textChunk];
+
+    segments = mergePhrases(segments, POLYPHONE_MERGE_PHRASES);
 
     // Pre-merge: merge segments for better tone sandhi and V一V/V不V patterns
     const merged = [];
@@ -781,7 +874,7 @@ async function phonemize_mixed_zh(text) {
       return section;
     }),
   );
-  return phonemes.join(" ").replace(/\s+([,;:!?])/g, "$1").replace(/❓\./g, "❓ .").replace(/\s+/g, " ").trim();
+  return phonemes.join(" ").replace(/\s+([,.;:!?])/g, "$1").replace(/❓\./g, "❓ .").replace(/\s+/g, " ").trim();
 }
 
 /**
