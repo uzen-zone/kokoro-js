@@ -1,161 +1,26 @@
 import { phonemize as espeakng } from "phonemizer";
 import { pinyin } from "pinyin-pro";
 
-const CHINESE_PUNCTUATION = new Map([
-  ["，", ","],
-  ["。", "."],
-  ["！", "!"],
-  ["？", "?"],
-  ["；", ";"],
-  ["：", ":"],
-  ["、", ","],
-]);
+import {
+  CHINESE_DIGITS,
+  CHINESE_NUMERIC_PATTERN,
+  CHINESE_PHRASES,
+  CHINESE_PHRASE_OVERRIDES,
+  CHINESE_PUNCTUATION,
+  CHINESE_SYLLABLE_PATTERN,
+  MUST_ERHUA,
+  MUST_NEUTRAL_TONE_WORDS,
+  NEUTRAL_TONE_FINAL_PARTICLES,
+  NEUTRAL_TONE_PARTICLES,
+  NEUTRAL_TONE_SUFFIXES,
+  NON_STRUCTURAL_DI_WORDS,
+  NOT_ERHUA,
+  POLYPHONE_MERGE_PHRASES,
+  ZH_FINALS,
+  ZHUYIN_INITIALS,
+} from "./zh-data.js";
 
-const CHINESE_DIGITS = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
-const CHINESE_SYLLABLE_PATTERN = /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+[0-5]$/;
 const CHINESE_WORD_SEGMENTER = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter("zh", { granularity: "word" }) : null;
-const CHINESE_NUMERIC_PATTERN = /^[零一二三四五六七八九十百千万亿两]+$/;
-const MUST_NEUTRAL_TONE_WORDS = new Set([
-  "一辈","丈人","丈夫","上司","上头","下巴","下水","不由","世故","东家","东西","两口","丧气","丫头","主意","买卖","事情","云彩","交情","亲家","亲戚","人家","什么","介绍","休息","伙计","似的","位置","体面","作坊","佩服","使唤","便宜","倒腾","兄弟","先生","关系","养活","冒失","冤家","冤枉","冷战","凉快","凑合","凤凰","出息","分析","利害","利索","利落","别人","别扭","刺激","刺猬","前头","力气","功夫","动弹","动静","勤快","匀称","包涵","包袱","千斤","厉害","厚道","口袋","叫唤","吆喝","合同","吉他","名堂","名字","后头","吓唬","含糊","告示","告诉","和尚","咕噜","咖喱","咳嗽","哆嗦","哈欠","哑巴","唾沫","商量","喇叭","喇嘛","喉咙","喜欢","喽啰","嘀咕","嘟囔","嘱咐","嘴巴","困难","在乎","地方","地道","壮实","外甥","多么","多少","大人","大夫","大意","大方","大爷","太阳","头发","女婿","奴才","妖精","妥当","妯娌","姐夫","姑娘","委屈","姥爷","娘家","婆家","媒人","媳妇","嫁妆","字号","学问","官司","实在","客气","家伙","寒碜","寡妇","对付","对头","将军","将就","小伙","小气","少爷","尾巴","屁股","岁数","工夫","差事","巴掌","巴结","师傅","师父","希罕","帐篷","帮手","干事","幸福","庄稼","应酬","开通","弄堂","弟兄","张罗","得罪","心思","志气","忙活","快活","念叨","念头","怎么","思量","怪物","悟性","惦记","意思","意识","懒得","戏弄","戒指","扁担","扎实","扑腾","打发","打听","打扮","打算","打量","扫帚","扫把","折腾","护士","报复","抬举","拖沓","招呼","招牌","拨弄","拳头","拾掇","指头","指甲","挑剔","挖苦","提防","收成","收拾","故事","新鲜","时候","明白","暖和","月亮","月饼","朋友","木匠","木头","本事","机灵","枇杷","枕头","架势","柴火","栅栏","核桃","棉花","棒槌","棺材","槟榔","模糊","欺负","正经","母亲","比方","泥鳅","活泼","浪头","消息","清楚","温和","溜达","滑溜","漂亮","火候","灯笼","炊帚","点心","烂糊","烟筒","烧饼","热闹","照顾","熟悉","爱人","父亲","爽快","牌楼","牙碜","牢骚","牲口","特务","状元","狐狸","玄乎","玫瑰","玻璃","琉璃","琢磨","琵琶","甘蔗","甜头","生意","畜生","疏忽","疙瘩","疟疾","痛快","痢疾","白净","盘算","盘缠","相声","眉毛","眨巴","眯缝","眼睛","知识","石匠","石头","石榴","码头","砚台","祖宗","福气","秀才","秀气","秧歌","称呼","稀罕","稳当","窗户","窝囊","窟窿","笑话","笑语","笤帚","答应","算盘","算计","篱笆","簸箕","粮食","精神","糊涂","糟蹋","糨糊","累赘","红火","结实","编辑","罐头","罗嗦","翻腾","老婆","老实","老爷","耳朵","耷拉","耽搁","耽误","聪明","胡同","胡琴","胡萝","胭脂","胳膊","能耐","脊梁","脑袋","脾气","膏药","自在","舌头","舒坦","舒服","芝麻","苍蝇","苗头","苗条","荒唐","荸荠","菩萨","萝卜","葡萄","葫芦","薄荷","蘑菇","蚂蚱","蛤蟆","蜡烛","行当","行李","街坊","衙门","衣服","衣裳","补丁","裁缝","见识","规矩","计划","认识","记号","记性","讲究","豆腐","财主","费用","趔趄","跟头","跳蚤","踏实","转悠","软和","过去","运气","这个","这么","连累","迷糊","造化","逻辑","道士","邋遢","那个","那么","部分","里头","里脊","钥匙","铁匠","铃铛","铺盖","锄头","门道","闺女","阔气","队伍","难为","风筝","馄饨","馒头","首饰","马虎","骆驼","骨头","高粱","鸳鸯","麻利","麻烦",
-]);
-const NEUTRAL_TONE_PARTICLES = new Set(["的","地","得"]);
-const NEUTRAL_TONE_SUFFIXES = new Set(["们","子","上","下"]);
-const NEUTRAL_TONE_FINAL_PARTICLES = new Set(["吧","呢","吗","啊","呀","嘛","呗"]);
-const MUST_ERHUA = new Set(["小院儿","胡同儿","范儿","老汉儿","撒欢儿","寻老礼儿","妥妥儿"]);
-const NOT_ERHUA = new Set(["虐儿","为儿","护儿","瞒儿","救儿","替儿","有儿","一儿","我儿","俺儿","妻儿","拐儿","聋儿","乞儿","患儿","幼儿","孤儿","婴儿","婴幼儿","连体儿","脑瘫儿","流浪儿","体弱儿","混血儿","蜜雪儿","舫儿","祖儿","美儿","应采儿","可儿","侄儿","孙儿","侄孙儿","女儿","男儿","红孩儿","花儿","虫儿","马儿","鸟儿","猪儿","猫儿","狗儿","少儿","花朵儿"]);
-const CHINESE_PHRASE_OVERRIDES = new Map([
-  ["一百二十三个", "ㄧ4ㄅㄞ3ㄦ4ㄕ十2/ㄙㄢ1ㄍㄜ5"],
-  ["一百二十三", "ㄧ4ㄅㄞ3ㄦ4ㄕ十2/ㄙㄢ1"],
-  ["价格是十二点五元", "ㄐ压4ㄍㄜ2/ㄕ十4/ㄕ十2ㄦ4ㄉ言3/ㄨ3元2"],
-  ["完成率是百分之九十五", "万2ㄔㄥ2ㄌㄩ4/ㄕ十4/ㄅㄞ3ㄈㄣ1ㄓ十1ㄐ又3ㄕ十2ㄨ3"],
-  ["电话一百三十八亿零一百三十八万", "ㄉ言4ㄏ穵4/ㄧ4ㄅㄞ3ㄙㄢ1ㄕ十2ㄅㄚ1/ㄧ4ㄌ应2/ㄧ1ㄕ十2ㄙㄢ1万4/ㄅㄚ1ㄑ言1"],
-  ["一万零八十六", "ㄧ1万4/ㄌ应2/ㄅㄚ1ㄕ十2ㄌ又4"],
-  ["二零二六年", "ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2"],
-  ["二零二六年十二月三十一日", "ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄕ十2ㄦ4月4/ㄙㄢ1ㄕ十2ㄧ2ㄖ十4"],
-  ["今天是二零二六年六月十六日", "ㄐ阴1ㄊ言1/ㄕ十4/ㄦ4ㄌ应2ㄦ4/ㄌ又4ㄋ言2/ㄌ又4月4/ㄕ十2ㄌ又4ㄖ十4"],
-  ["百分之十二点五", "ㄅㄞ3ㄈㄣ1ㄓ十1ㄕ十2/ㄦ4ㄉ言3ㄨ3"],
-
-  ["这个", "ㄓㄜ4ㄍㄜ5"],
-  ["一个", "ㄧ2ㄍㄜ5"],
-  ["今天天气", "ㄐ阴1ㄊ言1ㄊ言1ㄑㄧ4"],
-  ["今天下午", "ㄐ阴1ㄊ言1ㄒ压4ㄨ3"],
-  ["三点", "ㄙㄢ1ㄉ言3"],
-  ["儿化", "ㄦ2ㄏ穵4"],
-  ["小院儿", "ㄒ要3元R4"],
-  ["胡同儿", "ㄏㄨ2ㄊ中R5"],
-  ["媳妇儿", "ㄒㄧ2ㄈㄨR5"],
-  ["少儿", "ㄕㄠ4ㄦ2"],
-  ["不怕困难", "ㄅㄨ2ㄆㄚ4ㄎ文4ㄋㄢ5"],
-  ["两只小狗", "ㄌ阳2ㄓ十3/ㄒ要2ㄍㄡ3"],
-  ["一点一支持", "ㄧ4ㄉ言3/ㄧ4ㄓ十1ㄔ十2"],
-  ["长长的路", "ㄔㄤ2ㄔㄤ2ㄉㄜ5/ㄌㄨ4"],
-  ["发卡行", "ㄈㄚ4ㄎㄚ3ㄏㄤ2"],
-  ["放款行", "ㄈㄤ4ㄎ万3ㄏㄤ2"],
-  ["茧行", "ㄐ言3ㄏㄤ2"],
-  ["各地", "ㄍㄜ4ㄉㄧ5"],
-  ["色差", "ㄙㄜ4ㄔㄚ1"],
-  ["借还款", "ㄐㄝ4/ㄏ万2ㄎ万3"],
-  ["还款", "ㄏ万2ㄎ万3"],
-  ["还款成功", "ㄏ万2ㄎ万3/ㄔㄥ2ㄍ中1"],
-  ["时间为准", "ㄕ十2ㄐ言1/为2ㄓ文3"],
-  ["他的", "ㄊㄚ1/ㄉㄜ5"],
-  ["好吧", "ㄏㄠ3/ㄅㄚ5"],
-  ["慢慢地", "ㄇㄢ4ㄇㄢ4/ㄉㄜ5"],
-  ["听不到", "ㄊ应1/ㄅㄨ2ㄉㄠ4"],
-  ["嗲", "ㄉㄧㄚ3"],
-  ["呗", "ㄅㄟ5"],
-  ["咗", "ㄗㄨㄛ5"],
-  ["嘞", "ㄌㄟ5"],
-  ["个", "ㄍㄜ5"],
-  ["撒欢儿", "ㄙㄚ1ㄏ万R1"],
-  ["寻老礼儿", "ㄒ云2ㄌㄠ3ㄌㄧR3"],
-  ["妥妥儿", "ㄊ我3ㄊ我R5"],
-
-  // V不V / tone sandhi
-  ["老板很好", "ㄌㄠ2ㄅㄢ2ㄏㄣ3/ㄏㄠ3"],
-
-  // Number patterns (after normalize_chinese_numbers)
-  ["一百一十一", "ㄧ1ㄅㄞ3ㄧ1ㄕ十2/ㄧ1"],
-  ["一点五倍", "ㄧ4ㄉ言3/ㄨ3ㄅㄟ4"],
-  ["价格为十二点五元", "ㄐ压4ㄍㄜ2/为4/ㄕ十2ㄦ4ㄉ言3/ㄨ3元2"],
-  ["增长百分之三点五", "ㄗㄥ1ㄓㄤ3/ㄅㄞ3ㄈㄣ1ㄓ十1ㄙㄢ1ㄉ言3/ㄨ3"],
-  ["一九八零年", "ㄧ1ㄐ又3ㄅㄚ1/ㄌ应2/ㄋ言2"],
-  ["二零零八年八月八日", "ㄦ4ㄌ应2ㄌ应2ㄅㄚ1ㄋ言2/ㄅㄚ1月4ㄅㄚ1/ㄖ十4"],
-]);
-const CHINESE_PHRASES = [...CHINESE_PHRASE_OVERRIDES.keys()].sort((a, b) => b.length - a.length);
-const POLYPHONE_MERGE_PHRASES = new Set([
-  "开户行",
-  "行号",
-  "掺和",
-  "国际化",
-  "高楼大厦",
-]);
-
-const ZHUYIN_INITIALS = new Map([
-  ["b", "ㄅ"],
-  ["p", "ㄆ"],
-  ["m", "ㄇ"],
-  ["f", "ㄈ"],
-  ["d", "ㄉ"],
-  ["t", "ㄊ"],
-  ["n", "ㄋ"],
-  ["l", "ㄌ"],
-  ["g", "ㄍ"],
-  ["k", "ㄎ"],
-  ["h", "ㄏ"],
-  ["j", "ㄐ"],
-  ["q", "ㄑ"],
-  ["x", "ㄒ"],
-  ["zh", "ㄓ"],
-  ["ch", "ㄔ"],
-  ["sh", "ㄕ"],
-  ["r", "ㄖ"],
-  ["z", "ㄗ"],
-  ["c", "ㄘ"],
-  ["s", "ㄙ"],
-]);
-
-const ZH_FINALS = new Map([
-  ["a", "ㄚ"],
-  ["o", "ㄛ"],
-  ["e", "ㄜ"],
-  ["ai", "ㄞ"],
-  ["ei", "ㄟ"],
-  ["ao", "ㄠ"],
-  ["ou", "ㄡ"],
-  ["an", "ㄢ"],
-  ["en", "ㄣ"],
-  ["ang", "ㄤ"],
-  ["eng", "ㄥ"],
-  ["er", "ㄦ"],
-  ["i", "ㄧ"],
-  ["ii", "ㄭ"],
-  ["iii", "十"],
-  ["ia", "压"],
-  ["ie", "ㄝ"],
-  ["iao", "要"],
-  ["iou", "又"],
-  ["ian", "言"],
-  ["in", "阴"],
-  ["iang", "阳"],
-  ["ing", "应"],
-  ["iong", "用"],
-  ["u", "ㄨ"],
-  ["ua", "穵"],
-  ["uo", "我"],
-  ["uai", "外"],
-  ["uei", "为"],
-  ["uan", "万"],
-  ["uen", "文"],
-  ["uang", "王"],
-  ["ueng", "瓮"],
-  ["ong", "中"],
-  ["v", "ㄩ"],
-  ["ve", "月"],
-  ["van", "元"],
-  ["vn", "云"],
-]);
-
 /**
  * Helper function to split a string on a regex, but keep the delimiters.
  * This is required, because the JavaScript `.split()` method does not keep the delimiters,
@@ -361,6 +226,54 @@ function number_to_chinese(value) {
 }
 
 /**
+ * @param {string} sign
+ * @param {string} value
+ * @returns {string}
+ */
+function percentage_to_chinese(sign, value) {
+  const prefix = sign === "+" ? "正" : sign === "-" ? "负" : "";
+  return `${prefix}百分之${number_to_chinese(value)}`;
+}
+
+/**
+ * @param {string} start
+ * @param {string} end
+ * @returns {string}
+ */
+function range_to_chinese(start, end) {
+  return `${integer_to_chinese(Number(start))}到${integer_to_chinese(Number(end))}`;
+}
+
+/**
+ * @param {string} numerator
+ * @param {string} denominator
+ * @returns {string}
+ */
+function fraction_to_chinese(numerator, denominator) {
+  return `${integer_to_chinese(Number(denominator))}分之${integer_to_chinese(Number(numerator))}`;
+}
+
+/**
+ * @param {string} value
+ * @param {string} unit
+ * @returns {string}
+ */
+function measurement_to_chinese(value, unit) {
+  const normalizedUnit = unit.toLowerCase();
+  const number = number_to_chinese(value);
+  if (normalizedUnit === "℃" || normalizedUnit === "°c") {
+    return `摄氏${number}度`;
+  }
+  if (normalizedUnit === "kg") {
+    return `${number}千克`;
+  }
+  if (normalizedUnit === "cm") {
+    return `${number}厘米`;
+  }
+  return `${number}${unit}`;
+}
+
+/**
  * @param {string} value
  * @returns {string}
  */
@@ -392,6 +305,9 @@ function time_to_chinese(hour, minute, second = "") {
  */
 function normalize_chinese_numbers(text) {
   return text
+    .replace(/(\d{4})([- /.])(0[1-9]|1[0-2])\2(0[1-9]|[12]\d|3[01])/g, (_match, year, _separator, month, day) => {
+      return `${digits_to_chinese(year)}年${integer_to_chinese(Number(month))}月${integer_to_chinese(Number(day))}日`;
+    })
     .replace(/([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?([~-])([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?/g, (_match, startHour, startMinute, startSecond = "", _separator, endHour, endMinute, endSecond = "") => {
       return `${time_to_chinese(startHour, startMinute, startSecond)}至${time_to_chinese(endHour, endMinute, endSecond)}`;
     })
@@ -410,8 +326,13 @@ function normalize_chinese_numbers(text) {
       }
       return match;
     })
-    .replace(/(\d+(?:\.\d+)?)%/g, (_match, percent) => `百分之${number_to_chinese(percent)}`)
-    .replace(/\d+\.\d+/g, (match) => number_to_chinese(match))
+    .replace(/(?<![\d./A-Za-z])([1-9]\d{0,3})\/([1-9]\d{0,3})(?![\d./A-Za-z])/g, (_match, numerator, denominator) => fraction_to_chinese(numerator, denominator))
+    .replace(/(?<![\d.])([+-]?)(\d+(?:\.\d+)?)%/g, (_match, sign, percent) => percentage_to_chinese(sign, percent))
+    .replace(/(?<![\d./A-Za-z])(\d+(?:\.\d+)?)(℃|°C|kg|cm)(?![\d./A-Za-z])/gi, (_match, value, unit) => measurement_to_chinese(value, unit))
+    .replace(/(\bv)(\d+\.\d+)(?![\d./A-Za-z])/gi, (_match, prefix, value) => `${prefix}${number_to_chinese(value)}`)
+    .replace(/(?<![\d./A-Za-z])\d+\.\d+(?![\d./A-Za-z])/g, (match) => number_to_chinese(match))
+    .replace(/(?<![\d./A-Za-z])([1-9]\d{0,3})[~-]([1-9]\d{0,3})(?![\d./A-Za-z])/g, (_match, start, end) => range_to_chinese(start, end))
+    .replace(/(?<![\d.])-(\d{1,4})(?![\d.])/g, (_match, value) => `负${integer_to_chinese(Number(value))}`)
     .replace(/\b\d{1,4}\b/g, (match) => integer_to_chinese(Number(match)));
 }
 
@@ -499,6 +420,7 @@ function pinyin_to_zhuyin(syllable) {
  */
 function phonemize_zh_word(text) {
   const tokens = pinyin(text, { type: "array", toneType: "num" }).map(pinyin_to_zhuyin);
+  const isMoneyNumber = text.endsWith("元") && [...text.slice(0, -1)].every((c) => CHINESE_NUMERIC_PATTERN.test(c));
 
   // pinyin-pro may apply tone sandhi internally (e.g. 一百 → yi4 bai3).
   // For pure numeric sequences, revert 一 to tone 1.
@@ -550,7 +472,7 @@ function phonemize_zh_word(text) {
     } else if (tokens[index] === "ㄅㄨ4" && /^[ㄅ-ㄩ压言阳要阴应用又穵外万王为文瓮我中月元云ㄭ十]+4$/.test(tokens[index + 1])) {
       tokens[index] = "ㄅㄨ2";
     }
-    if (CHINESE_SYLLABLE_PATTERN.test(tokens[index]) && tokens[index].endsWith("3") && CHINESE_SYLLABLE_PATTERN.test(tokens[index + 1]) && tokens[index + 1].endsWith("3")) {
+    if (!isMoneyNumber && CHINESE_SYLLABLE_PATTERN.test(tokens[index]) && tokens[index].endsWith("3") && CHINESE_SYLLABLE_PATTERN.test(tokens[index + 1]) && tokens[index + 1].endsWith("3")) {
       tokens[index] = `${tokens[index].slice(0, -1)}2`;
     }
   }
@@ -578,7 +500,7 @@ function phonemize_zh_word(text) {
   }
 
   // 4-char all-tone-3: split 2+2, first of each sub → tone 2 (Python _three_sandhi)
-  if (tokens.length === 4 && origTone3.every(Boolean) && tokens[3].endsWith("3")) {
+  if (!isMoneyNumber && tokens.length === 4 && origTone3.every(Boolean) && tokens[3].endsWith("3")) {
     tokens[0] = tokens[0].slice(0, -1) + "2";
     tokens[2] = tokens[2].slice(0, -1) + "2";
     if (tokens[1].endsWith("2")) tokens[1] = tokens[1].slice(0, -1) + "3";
@@ -674,6 +596,55 @@ function mergePhrases(segments, phraseSet) {
 }
 
 /**
+ * @param {string[]} segments
+ * @returns {string[]}
+ */
+function mergeNumericMeasureSegments(segments) {
+  const result = [];
+  for (let i = 0; i < segments.length; i += 1) {
+    let current = segments[i];
+
+    if (CHINESE_NUMERIC_PATTERN.test(current)) {
+      const start = i;
+      while (i + 1 < segments.length && CHINESE_NUMERIC_PATTERN.test(segments[i + 1])) {
+        current += segments[i + 1];
+        i += 1;
+      }
+      if (i + 1 < segments.length && segments[i + 1] === "元") {
+        current += segments[i + 1];
+        i += 1;
+      } else if (i + 2 < segments.length && segments[i + 1] === "个" && segments[i + 2] === "半") {
+        result.push(`${current}个`);
+        result.push("半");
+        i += 2;
+        continue;
+      } else {
+        i = start;
+        current = segments[i];
+      }
+    }
+
+    if (current === "半" && i + 1 < segments.length && segments[i + 1] === "小时") {
+      result.push("半小时");
+      i += 1;
+      continue;
+    }
+
+    result.push(current);
+  }
+  return result;
+}
+
+/**
+ * @param {string} text
+ * @param {number} index
+ * @returns {boolean}
+ */
+function isMeasureHalfContext(text, index) {
+  return index > 0 && text[index] === "个" && CHINESE_NUMERIC_PATTERN.test(text[index - 1]) && text[index + 1] === "半";
+}
+
+/**
  * @param {string} text
  * @returns {string}
  */
@@ -684,7 +655,7 @@ function phonemize_zh_text(text) {
   while (index < text.length) {
     let matchedPhrase = null;
     for (const phrase of CHINESE_PHRASES) {
-      if (text.startsWith(phrase, index)) {
+      if (text.startsWith(phrase, index) && !isMeasureHalfContext(text, index)) {
         matchedPhrase = phrase;
         break;
       }
@@ -700,7 +671,7 @@ function phonemize_zh_text(text) {
     while (nextIndex < text.length) {
       let hasOverride = false;
       for (const phrase of CHINESE_PHRASES) {
-        if (text.startsWith(phrase, nextIndex)) {
+        if (text.startsWith(phrase, nextIndex) && !isMeasureHalfContext(text, nextIndex)) {
           hasOverride = true;
           break;
         }
@@ -719,6 +690,7 @@ function phonemize_zh_text(text) {
       : [textChunk];
 
     segments = mergePhrases(segments, POLYPHONE_MERGE_PHRASES);
+    segments = mergeNumericMeasureSegments(segments);
 
     // Pre-merge: merge segments for better tone sandhi and V一V/V不V patterns
     const merged = [];
@@ -791,8 +763,15 @@ function phonemize_zh_text(text) {
         continue;
       }
 
-      // 的/地/得 as structural particles → merge with preceding
-      else if (NEUTRAL_TONE_PARTICLES.has(current) && merged.length > 0) {
+      // Date suffix: keep day number with 日/号 (e.g. 十九日) like misaki/jieba.
+      else if (["日", "号"].includes(current) && merged.length > 0) {
+        merged[merged.length - 1] += current;
+        continue;
+      }
+
+      // 的/地/得 as structural particles → merge with preceding.
+      // 地 is ambiguous in noun compounds like 地标, so keep those split.
+      else if (NEUTRAL_TONE_PARTICLES.has(current) && merged.length > 0 && !(current === "地" && i + 1 < segments.length && NON_STRUCTURAL_DI_WORDS.has(`${current}${segments[i + 1]}`))) {
         const prev = merged[merged.length - 1];
         if (prev.length > 0) {
           merged[merged.length - 1] = prev + current;

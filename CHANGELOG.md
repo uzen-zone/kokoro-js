@@ -8,6 +8,8 @@
 - Added Chinese polyphone phrase overrides for 14 entries (开户行, 发卡行, 行号, 各地, 色差, 掺和, 借还款, 还款成功, 时间为准, etc.) to fix G2P disambiguation bypassing `Intl.Segmenter` fragmentation.
 - Added `normalize_chinese_punctuation()` for full-width bracket/quote normalization.
 - Added `PLAN.md` with the current Chinese extension status, known `misaki` alignment gaps, and a prioritized backlog for `zh_normalization` parity.
+- Added Chinese `HH:MM` and time-range normalization for examples such as `15:30`, `8:05`, and `8:30-12:30`.
+- Added Chinese slash/dash date normalization for examples such as `2026-06-19` and `2026/06/19`.
 
 ### Changed
 - Refactored demo worker and UI: removed duplicate `splitLongText`/`splitTextForSpeech`, delegate chunking to `tts.stream()`. Article rendering simplified to paragraph-level with improved highlight matching.
@@ -41,12 +43,12 @@
 - Expanded Chinese golden coverage for more `misaki` v1.1 segmentation, tone sandhi, erhua, numeric, and mixed-English cases.
 - Replaced single-phrase overrides with generic tone sandhi rules from Python `tone_sandhi.py`.
 - Capped tone-3 pre-merge at total length ≤3 to prevent over-merging.
-- Documented remaining Python `misaki.zh_normalization` parity gaps, including `HH:MM` time expressions, slash/dash dates, fractions, ranges, phones, temperatures, and measurements.
+- Documented remaining Python `misaki.zh_normalization` parity gaps, including fractions, ranges, phones, temperatures, and measurements.
 
 ### Fixed
 - Prevented failed voice downloads from being treated as voice data.
 - Avoided Chinese text falling through to English phonemization.
-- Matched additional Python `misaki` v1.1 outputs for focused phrase, erhua, and number-normalization gaps; the current golden corpus is 149 entries with 115 match and 34 recorded gaps.
+- Matched additional Python `misaki` v1.1 outputs for focused phrase, erhua, number-normalization, time-normalization, and date-normalization gaps; the current golden corpus is 156 entries with 122 match and 34 recorded gaps.
 - Fixed erhua R placement: R now inserted before tone number (e.g. `元R4` not `元4R`).
 - Fixed `地` reading when used as structural particle (e.g. `慢慢地`→de5 not di4).
 - Fixed `一` tone in Chinese digit sequences (e.g. `一百`→yi1, not yi4 from pinyin-pro sandhi).
