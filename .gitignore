@@ -1,0 +1,7 @@
+node_modules/
+dist
+types
+! demo/public/kokoro/voices/**
+
+# Ignore voice .bin files in the source package dir, but NOT in the demo
+/voices/
