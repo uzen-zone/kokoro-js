@@ -7,6 +7,8 @@ import {
   CHINESE_PHRASES,
   CHINESE_PHRASE_OVERRIDES,
   CHINESE_PUNCTUATION,
+  CHINESE_QUANTIFIERS,
+  CHINESE_SEGMENT_SPLITS,
   CHINESE_SYLLABLE_PATTERN,
   MUST_ERHUA,
   MUST_NEUTRAL_TONE_WORDS,
@@ -16,6 +18,8 @@ import {
   NON_STRUCTURAL_DI_WORDS,
   NOT_ERHUA,
   POLYPHONE_MERGE_PHRASES,
+  STANDALONE_ASPECT_PREVIOUS_WORDS,
+  STANDALONE_PARTICLE_PREVIOUS_WORDS,
   ZH_FINALS,
   ZHUYIN_INITIALS,
 } from "./zh-data.js";
@@ -205,6 +209,41 @@ function integer_to_chinese(number) {
 }
 
 /**
+ * @param {number} number
+ * @returns {string}
+ */
+function integer_under_10000_to_chinese(number) {
+  return integer_to_chinese(number);
+}
+
+/**
+ * @param {number} number
+ * @returns {string}
+ */
+function large_integer_to_chinese(number) {
+  if (number < 10000) return integer_under_10000_to_chinese(number);
+
+  const yi = Math.floor(number / 100000000);
+  const wan = Math.floor((number % 100000000) / 10000);
+  const rest = number % 10000;
+  const parts = [];
+
+  if (yi > 0) {
+    parts.push(`${large_integer_to_chinese(yi)}亿`);
+  }
+  if (wan > 0) {
+    if (yi > 0 && wan < 1000) parts.push("零");
+    parts.push(`${integer_under_10000_to_chinese(wan)}万`);
+  }
+  if (rest > 0) {
+    if (yi > 0 || (wan > 0 && rest < 1000)) parts.push("零");
+    parts.push(integer_under_10000_to_chinese(rest));
+  }
+
+  return parts.join("").replace(/零+/g, "零").replace(/零$/g, "");
+}
+
+/**
  * @param {string} value
  * @returns {string}
  */
@@ -216,14 +255,51 @@ function digits_to_chinese(value) {
  * @param {string} value
  * @returns {string}
  */
+function phone_digits_to_chinese(value) {
+  return digits_to_chinese(value).replace(/一/g, "幺");
+}
+
+/**
+ * @param {string} value
+ * @param {boolean} mobile
+ * @returns {string}
+ */
+function phone_number_to_chinese(value, mobile = true) {
+  if (mobile) {
+    return value
+      .replace(/^\+/, "")
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(phone_digits_to_chinese)
+      .join(",");
+  }
+  return value.split("-").map(phone_digits_to_chinese).join(",");
+}
+
+/**
+ * @param {string} value
+ * @returns {string}
+ */
 function number_to_chinese(value) {
   const [integer, decimal = ""] = value.split(".");
-  let result = integer_to_chinese(Number(integer));
+  let result = large_integer_to_chinese(Number(integer));
   if (decimal.replace(/0+$/, "")) {
     result += `点${digits_to_chinese(decimal.replace(/0+$/, ""))}`;
   }
   return result;
 }
+
+/**
+ * @param {string} value
+ * @param {string} suffix
+ * @param {string} quantifier
+ * @returns {string}
+ */
+function quantified_number_to_chinese(value, suffix = "", quantifier) {
+  return `${number_to_chinese(value)}${suffix === "+" ? "多" : suffix}${quantifier}`;
+}
+
+const CHINESE_QUANTIFIER_PATTERN = new RegExp(`(?<![\\d./A-Za-z])(\\d+)([多余几+])?(${CHINESE_QUANTIFIERS.join("|")})(?![\\d./A-Za-z])`, "g");
 
 /**
  * @param {string} sign
@@ -317,15 +393,11 @@ function normalize_chinese_numbers(text) {
       const normalizedDay = day ? `${integer_to_chinese(Number(day))}${daySuffix}` : "";
       return `${digits_to_chinese(year)}年${normalizedMonth}${normalizedDay}`;
     })
-    .replace(/(\d{5,})/g, (match) => {
-      if (match === "13800138000") {
-        return "一百三十八亿零一百三十八万";
-      }
-      if (match === "10086") {
-        return "一万零八十六";
-      }
-      return match;
-    })
+    .replace(CHINESE_QUANTIFIER_PATTERN, (_match, value, suffix = "", quantifier) => quantified_number_to_chinese(value, suffix, quantifier))
+    .replace(/(?<!\d)((?:\+?86\s?)?1(?:[38]\d|5[0-35-9]|7[678]|9[89])\d{8})(?!\d)/g, (match) => phone_number_to_chinese(match))
+    .replace(/(?<!\d)((?:0(?:10|2[1-3]|[3-9]\d{2})-?)?[1-9]\d{6,7})(?!\d)/g, (match) => phone_number_to_chinese(match, false))
+    .replace(/(?<!\d)400-?\d{3}-?\d{4}(?!\d)/g, (match) => phone_number_to_chinese(match, false))
+    .replace(/(电话|号码|热线|客服)(\d{5})(?!\d)/g, (_match, prefix, value) => `${prefix}${phone_digits_to_chinese(value)}`)
     .replace(/(?<![\d./A-Za-z])([1-9]\d{0,3})\/([1-9]\d{0,3})(?![\d./A-Za-z])/g, (_match, numerator, denominator) => fraction_to_chinese(numerator, denominator))
     .replace(/(?<![\d.])([+-]?)(\d+(?:\.\d+)?)%/g, (_match, sign, percent) => percentage_to_chinese(sign, percent))
     .replace(/(?<![\d./A-Za-z])(\d+(?:\.\d+)?)(℃|°C|kg|cm)(?![\d./A-Za-z])/gi, (_match, value, unit) => measurement_to_chinese(value, unit))
@@ -419,6 +491,10 @@ function pinyin_to_zhuyin(syllable) {
  * @returns {string}
  */
 function phonemize_zh_word(text) {
+  if (text === "了") {
+    return "ㄌㄜ5";
+  }
+
   const tokens = pinyin(text, { type: "array", toneType: "num" }).map(pinyin_to_zhuyin);
   const isMoneyNumber = text.endsWith("元") && [...text.slice(0, -1)].every((c) => CHINESE_NUMERIC_PATTERN.test(c));
 
@@ -636,6 +712,14 @@ function mergeNumericMeasureSegments(segments) {
 }
 
 /**
+ * @param {string[]} segments
+ * @returns {string[]}
+ */
+function splitKnownSegments(segments) {
+  return segments.flatMap((segment) => CHINESE_SEGMENT_SPLITS.get(segment) ?? [segment]);
+}
+
+/**
  * @param {string} text
  * @param {number} index
  * @returns {boolean}
@@ -689,6 +773,7 @@ function phonemize_zh_text(text) {
         .map(({ segment }) => segment)
       : [textChunk];
 
+    segments = splitKnownSegments(segments);
     segments = mergePhrases(segments, POLYPHONE_MERGE_PHRASES);
     segments = mergeNumericMeasureSegments(segments);
 
@@ -732,7 +817,7 @@ function phonemize_zh_text(text) {
       }
 
       // V不V pattern: A + 不 + B or A + 不B
-      else if (current === "不" || (current.length > 1 && current[0] === "不")) {
+      else if ((current === "不" || (current.length > 1 && current[0] === "不")) && !["不太", "不能"].includes(current)) {
         // V不V: A + 不B → merge with preceding
         if (current.length > 1 && merged.length > 0) {
           const prevSeg = merged[merged.length - 1];
@@ -759,6 +844,10 @@ function phonemize_zh_text(text) {
 
       // 了/着/过 as aspect particles → merge with preceding verb
       else if (["了","着","过"].includes(current) && merged.length > 0) {
+        if (current === "了" && STANDALONE_ASPECT_PREVIOUS_WORDS.has(merged[merged.length - 1])) {
+          merged.push(current);
+          continue;
+        }
         merged[merged.length - 1] += current;
         continue;
       }
@@ -773,6 +862,10 @@ function phonemize_zh_text(text) {
       // 地 is ambiguous in noun compounds like 地标, so keep those split.
       else if (NEUTRAL_TONE_PARTICLES.has(current) && merged.length > 0 && !(current === "地" && i + 1 < segments.length && NON_STRUCTURAL_DI_WORDS.has(`${current}${segments[i + 1]}`))) {
         const prev = merged[merged.length - 1];
+        if (STANDALONE_PARTICLE_PREVIOUS_WORDS.has(prev)) {
+          merged.push(current);
+          continue;
+        }
         if (prev.length > 0) {
           merged[merged.length - 1] = prev + current;
           continue;
@@ -788,6 +881,10 @@ function phonemize_zh_text(text) {
       // Merge consecutive tone-3 segments (capped at total ≤ 3, matching Python)
       if (merged.length > 0) {
         const prev = merged[merged.length - 1];
+        if (["了", "着", "过"].includes(prev) || ["了", "着", "过"].includes(current)) {
+          merged.push(current);
+          continue;
+        }
         const prevLastChar = prev[prev.length - 1];
         const currFirstChar = current[0];
         const prevPinyin = pinyin(prevLastChar, { toneType: "num" });
@@ -803,6 +900,10 @@ function phonemize_zh_text(text) {
         const prev = merged[merged.length - 1];
         if (prev === current) {
           merged[merged.length - 1] = prev + current;
+          continue;
+        }
+        if (["了", "着", "过"].includes(prev) || ["了", "着", "过"].includes(current)) {
+          merged.push(current);
           continue;
         }
         // Merge consecutive tone-3 segments
@@ -868,6 +969,39 @@ function escapeRegExp(string) {
 
 const PUNCTUATION = ';:,.!?¡¿—…"«»“”(){}[]';
 const PUNCTUATION_PATTERN = new RegExp(`(\\s*[${escapeRegExp(PUNCTUATION)}]+\\s*)+`, "g");
+const ENGLISH_WORD_OVERRIDES = new Map([["uzen", "jˈuː.zən"]]);
+const ENGLISH_WORD_OVERRIDE_PATTERN = new RegExp(`\\b(${[...ENGLISH_WORD_OVERRIDES.keys()].map(escapeRegExp).join("|")})\\b`, "gi");
+
+/**
+ * @param {string} text
+ * @param {string} lang
+ * @returns {Promise<string>}
+ */
+async function phonemize_english_section(text, lang) {
+  const parts = [];
+  let prev = 0;
+
+  for (const match of text.matchAll(ENGLISH_WORD_OVERRIDE_PATTERN)) {
+    const before = text.slice(prev, match.index);
+    const afterIndex = match.index + match[0].length;
+    if (prev < match.index) {
+      parts.push((await espeakng(before, lang)).join(" "));
+    } else if (match.index > 0 && /\s/.test(text[match.index - 1])) {
+      parts.push(" ");
+    }
+    parts.push(ENGLISH_WORD_OVERRIDES.get(match[0].toLowerCase()));
+    if (afterIndex < text.length && /\s/.test(text[afterIndex])) {
+      parts.push(" ");
+    }
+    prev = afterIndex;
+  }
+
+  if (prev < text.length) {
+    parts.push((await espeakng(text.slice(prev), lang)).join(" "));
+  }
+
+  return parts.join("");
+}
 
 /**
  * Phonemize text using the language-specific phonemizer
@@ -891,7 +1025,7 @@ export async function phonemize(text, language = "a", norm = true) {
 
   // 3. Convert each section to phonemes
   const lang = language === "a" ? "en-us" : "en";
-  const ps = (await Promise.all(sections.map(async ({ match, text }) => (match ? text : (await espeakng(text, lang)).join(" "))))).join("");
+  const ps = (await Promise.all(sections.map(async ({ match, text }) => (match ? text : phonemize_english_section(text, lang))))).join("");
 
   // 4. Post-process phonemes
   let processed = ps
