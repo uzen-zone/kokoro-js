@@ -1,6 +1,6 @@
 {
-  "name": "kokoro-js",
-  "version": "1.2.2",
+  "name": "@uzen/kokoro-js",
+  "version": "1.2.3",
   "type": "module",
   "exports": {
     "types": "./types/kokoro.d.ts",
@@ -36,7 +36,6 @@
   "description": "High-quality text-to-speech for the web",
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
-    "phonemize": "^1.2.0",
     "phonemizer": "^1.2.1",
     "pinyin-pro": "^3.28.1"
   },
@@ -51,7 +50,6 @@
   "files": [
     "types",
     "dist",
-    "voices",
     "README.md",
     "LICENSE"
   ],

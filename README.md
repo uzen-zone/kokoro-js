@@ -1,9 +1,9 @@
 # Kokoro TTS
 
 <p align="center">
-    <a href="https://www.npmjs.com/package/kokoro-js"><img alt="NPM" src="https://img.shields.io/npm/v/kokoro-js"></a>
-    <a href="https://www.npmjs.com/package/kokoro-js"><img alt="NPM Downloads" src="https://img.shields.io/npm/dw/kokoro-js"></a>
-    <a href="https://www.jsdelivr.com/package/npm/kokoro-js"><img alt="jsDelivr Hits" src="https://img.shields.io/jsdelivr/npm/hw/kokoro-js"></a>
+    <a href="https://www.npmjs.com/package/@uzen/kokoro-js"><img alt="NPM" src="https://img.shields.io/npm/v/@uzen%2Fkokoro-js"></a>
+    <a href="https://www.npmjs.com/package/@uzen/kokoro-js"><img alt="NPM Downloads" src="https://img.shields.io/npm/dw/@uzen%2Fkokoro-js"></a>
+    <a href="https://www.jsdelivr.com/package/npm/@uzen/kokoro-js"><img alt="jsDelivr Hits" src="https://img.shields.io/jsdelivr/npm/hw/@uzen%2Fkokoro-js"></a>
     <a href="https://github.com/hexgrad/kokoro/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/hexgrad/kokoro?color=blue"></a>
     <a href="https://huggingface.co/spaces/webml-community/kokoro-webgpu"><img alt="Demo" src="https://img.shields.io/badge/Hugging_Face-demo-green"></a>
 </p>
@@ -12,21 +12,27 @@ Kokoro is a frontier TTS model for its size of 82 million parameters (text in/au
 
 ## Usage
 
-First, install the `kokoro-js` library from [NPM](https://npmjs.com/package/kokoro-js) using:
+First, install the `@uzen/kokoro-js` library from [NPM](https://npmjs.com/package/@uzen/kokoro-js) using:
 
 ```bash
-npm i kokoro-js
+npm i @uzen/kokoro-js
 ```
+
+Voice `.bin` files are not bundled in the npm package. Download the voices you need from the `voices/` directory of [`onnx-community/Kokoro-82M-v1.1-zh-ONNX`](https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX/tree/main/voices), then make them available to the runtime:
+
+- Browser/Vite apps: place files such as `zf_001.bin` under `public/kokoro/voices/`; the default `voicePath` is `/kokoro/voices`.
+- Node.js: place the files in a local directory and pass `voicePath`, for example `voicePath: "./voices"`.
 
 You can then generate speech as follows:
 
 ```js
-import { KokoroTTS } from "kokoro-js";
+import { KokoroTTS } from "@uzen/kokoro-js";
 
 const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {
   dtype: "q8", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
   device: "wasm", // Options: "wasm", "webgpu" (web) or "cpu" (node). If using "webgpu", we recommend using dtype="fp32".
+  // voicePath: "./voices", // Node.js example. Browser default is "/kokoro/voices".
 });
 
 const text = "你好，欢迎使用 Kokoro 中文语音。";
@@ -40,7 +46,7 @@ audio.save("audio.wav");
 Or if you'd prefer to stream the output, you can do that with:
 
 ```js
-import { KokoroTTS, TextSplitterStream } from "kokoro-js";
+import { KokoroTTS, TextSplitterStream } from "@uzen/kokoro-js";
 
 const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {

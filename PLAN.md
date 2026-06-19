@@ -192,8 +192,8 @@
 ### P3：TTS 与发布质量
 
 - [x] **端到端中文 TTS 验证**：当前略过；已有用户侧验证路径，暂不作为本轮任务。
-- [ ] **Demo 体验**：model 固定，保留 voice 选择；继续完善错误提示、长文本进度和移动端可用性。
-- [ ] **npm 发布准备**：审查 `kokoro.js/voices` 体积、`files` 白名单、README 示例和 v1.1 中文模型说明。
+- [x] **Demo 体验**：model 固定，保留 voice 选择；已补充生成状态、chunk/队列进度、错误提示和移动端状态条布局。
+- [x] **npm 发布准备**：已审查 `kokoro.js/voices` 体积（103 个 voice，约 51.3 MB）、`files` 白名单（`types` / `dist` / `voices` / `README.md` / `LICENSE`），并修正 README v1.1 zh 示例为中文文本和 `zf_001` voice。
 
 ## 验证命令
 - 定向 phonemizer 测试：`npm --prefix kokoro.js exec vitest run tests/phonemize.test.js`
