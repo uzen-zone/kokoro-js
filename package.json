@@ -11,7 +11,7 @@
     "default": "./dist/kokoro.js"
   },
   "scripts": {
-    "build": "node -e \"fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('types',{recursive:true,force:true})\" && rollup -c && tsc && node -e \"fs.copyFileSync('../LICENSE','LICENSE')\"",
+    "build": "node -e \"fs.rmSync('dist',{recursive:true,force:true});fs.rmSync('types',{recursive:true,force:true})\" && rollup -c && tsc",
     "format": "prettier --write . --print-width 1000",
     "test": "vitest run"
   },
@@ -30,7 +30,7 @@
   },
   "contributors": [
     "Xenova",
-    "uzen.zone"
+    "uzen-zone"
   ],
   "license": "Apache-2.0",
   "description": "High-quality text-to-speech for the web",
@@ -51,6 +51,7 @@
     "types",
     "dist",
     "README.md",
+    "README-zh.md",
     "LICENSE"
   ],
   "publishConfig": {

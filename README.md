@@ -4,163 +4,141 @@
     <a href="https://www.npmjs.com/package/@uzen/kokoro-js"><img alt="NPM" src="https://img.shields.io/npm/v/@uzen%2Fkokoro-js"></a>
     <a href="https://www.npmjs.com/package/@uzen/kokoro-js"><img alt="NPM Downloads" src="https://img.shields.io/npm/dw/@uzen%2Fkokoro-js"></a>
     <a href="https://www.jsdelivr.com/package/npm/@uzen/kokoro-js"><img alt="jsDelivr Hits" src="https://img.shields.io/jsdelivr/npm/hw/@uzen%2Fkokoro-js"></a>
-    <a href="https://github.com/hexgrad/kokoro/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/hexgrad/kokoro?color=blue"></a>
-    <a href="https://huggingface.co/spaces/webml-community/kokoro-webgpu"><img alt="Demo" src="https://img.shields.io/badge/Hugging_Face-demo-green"></a>
+    <a href="https://www.npmjs.com/package/@uzen/kokoro-js"><img alt="License" src="https://img.shields.io/npm/l/@uzen%2Fkokoro-js?color=blue"></a>
 </p>
 
-Kokoro is a frontier TTS model for its size of 82 million parameters (text in/audio out). This JavaScript library allows the model to be run 100% locally in the browser thanks to [🤗 Transformers.js](https://huggingface.co/docs/transformers.js). Try it out using our [online demo](https://huggingface.co/spaces/webml-community/kokoro-webgpu)!
+Language: English | [简体中文](./README-zh.md)
 
-## Usage
+`@uzen/kokoro-js` is a JavaScript runtime wrapper for Kokoro TTS based on [Transformers.js](https://huggingface.co/docs/transformers.js). This fork is wired for the v1.1 Chinese model and supports Mandarin plus mixed Chinese/English text through the built-in phonemizer.
 
-First, install the `@uzen/kokoro-js` library from [NPM](https://npmjs.com/package/@uzen/kokoro-js) using:
+## Goals
+
+- Add browser-local Mandarin and mixed Chinese/English TTS support to `kokoro.js`.
+- Use Python `kokoro` plus `misaki` v1.1 Chinese frontend behavior as the reference for Chinese phonemization, normalization, tone sandhi, and erhua handling.
+- Keep the JavaScript package self-contained and browser-friendly at runtime; Python is used only as a behavior reference, not as a runtime dependency.
+- Target practical web inference with the v1.1 Chinese ONNX model, local voice assets, and a WebGPU-first default path.
+- Preserve usable English spans in mixed text by routing them through the existing English phonemizer path instead of dropping them.
+
+## Current Status
+
+- Chinese phonemization now emits v1.1 Chinese tokenizer symbols directly instead of falling back to English espeak phonemization.
+- The implementation covers common Mandarin normalization cases including time expressions, dates, numeric ranges, fractions, negative numbers, percentages, phone numbers, temperatures, measurements, money, and quantified numbers.
+- Tone-related handling includes selected neutral-tone words and particles, reduplication, `一`/`不` sandhi, third-tone sandhi, and erhua handling.
+- Golden corpus tracking is based on Python `misaki` v1.1 outputs; the current plan records 164 examples with 143 matches and 21 known gaps.
+- Remaining gaps mainly come from `Intl.Segmenter` versus `jieba.posseg` segmentation differences, missing POS information in the browser path, and long-tail text normalization cases.
+
+## Features
+
+- Runs Kokoro TTS in browser and Node.js through Transformers.js.
+- Supports the v1.1 Chinese ONNX model: `onnx-community/Kokoro-82M-v1.1-zh-ONNX`.
+- Supports Mandarin text and mixed Chinese/English text with explicit Chinese phonemization.
+- Provides local voice loading through `voicePath`; voice `.bin` files are not bundled in the npm package.
+- Supports single-shot generation through `tts.generate()` and chunked generation through `tts.stream()`.
+
+## Known Limitations
+
+- Voice assets must be hosted or copied by the application before inference can run.
+- The registered English voice set is limited to `af_maple`, `af_sol`, and `bf_vale`.
+- Chinese phonemization is implemented in JavaScript and may still differ from Python `misaki` on long-tail polyphones or text normalization cases.
+- Browser performance depends on WebGPU availability; use `wasm` only as a fallback when `webgpu` is unavailable.
+- `fp32`, `fp16`, and `q4f16` are recommended; `q8` and `q4` are supported by the loader but not recommended for this model.
+
+## Install
 
 ```bash
 npm i @uzen/kokoro-js
 ```
 
-Voice `.bin` files are not bundled in the npm package. Download the voices you need from the `voices/` directory of [`onnx-community/Kokoro-82M-v1.1-zh-ONNX`](https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX/tree/main/voices), then make them available to the runtime:
+Installing this package also installs its runtime dependencies, including `@huggingface/transformers`. Transformers.js brings in ONNX Runtime packages such as `onnxruntime-web` as transitive dependencies; applications do not need to install them separately.
 
-- Browser/Vite apps: place files such as `zf_001.bin` under `public/kokoro/voices/`; the default `voicePath` is `/kokoro/voices`.
-- Node.js: place the files in a local directory and pass `voicePath`, for example `voicePath: "./voices"`.
+## Model And Voices
 
-You can then generate speech as follows:
+Use the v1.1 Chinese ONNX model:
+
+```txt
+onnx-community/Kokoro-82M-v1.1-zh-ONNX
+```
+
+Voice `.bin` files are not bundled in the npm package. Download the voice files you need from the model repository and expose them through `voicePath`.
+
+- Browser/Vite apps: put files such as `zf_001.bin` under `public/kokoro/voices/`; the default `voicePath` is `/kokoro/voices`.
+- Node.js: put the files in a local directory and pass that directory as `voicePath`, for example `voicePath: "./voices"`.
+
+Current registered voices are the v1.1 Chinese voices plus two American English voices and one British English voice:
+
+```txt
+af_maple, af_sol, bf_vale
+zf_001, zf_002, zf_003, zf_004, zf_005, zf_006, zf_007, zf_008,
+zf_017, zf_018, zf_019, zf_021, zf_022, zf_023, zf_024, zf_026,
+zf_027, zf_028, zf_032, zf_036, zf_038, zf_039, zf_040, zf_042,
+zf_043, zf_044, zf_046, zf_047, zf_048, zf_049, zf_051, zf_059,
+zf_060, zf_067, zf_070, zf_071, zf_072, zf_073, zf_074, zf_075,
+zf_076, zf_077, zf_078, zf_079, zf_083, zf_084, zf_085, zf_086,
+zf_087, zf_088, zf_090, zf_092, zf_093, zf_094, zf_099,
+zm_009, zm_010, zm_011, zm_012, zm_013, zm_014, zm_015, zm_016,
+zm_020, zm_025, zm_029, zm_030, zm_031, zm_033, zm_034, zm_035,
+zm_037, zm_041, zm_045, zm_050, zm_052, zm_053, zm_054, zm_055,
+zm_056, zm_057, zm_058, zm_061, zm_062, zm_063, zm_064, zm_065,
+zm_066, zm_068, zm_069, zm_080, zm_081, zm_082, zm_089, zm_091,
+zm_095, zm_096, zm_097, zm_098, zm_100
+```
+
+Call `tts.list_voices()` or read `tts.voices` at runtime for the authoritative list from the installed package.
+
+## Generate Speech
 
 ```js
 import { KokoroTTS } from "@uzen/kokoro-js";
 
 const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {
-  dtype: "q8", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
-  device: "wasm", // Options: "wasm", "webgpu" (web) or "cpu" (node). If using "webgpu", we recommend using dtype="fp32".
-  // voicePath: "./voices", // Node.js example. Browser default is "/kokoro/voices".
+  dtype: "fp32",
+  device: "webgpu",
+  voicePath: "/kokoro/voices",
 });
 
-const text = "你好，欢迎使用 Kokoro 中文语音。";
-const audio = await tts.generate(text, {
-  // Use `tts.list_voices()` to list all available voices
+const audio = await tts.generate("你好，欢迎使用 Kokoro 中文语音。", {
   voice: "zf_001",
+  speed: 1,
 });
+
 audio.save("audio.wav");
 ```
 
-Or if you'd prefer to stream the output, you can do that with:
+Use `"fp32"` as the default `dtype` and `"webgpu"` as the default browser `device`. Recommended `dtype` values are `"fp32"`, `"fp16"`, and `"q4f16"`. Other supported quantized variants such as `"q8"` and `"q4"` are not recommended for this model. Supported `device` values are `"webgpu"`, `"wasm"`, `"cpu"`, or `null`; browser apps should prefer `"webgpu"` when available and can fall back to `"wasm"`, while Node.js uses `"cpu"`.
+
+## Stream Speech
 
 ```js
 import { KokoroTTS, TextSplitterStream } from "@uzen/kokoro-js";
 
 const model_id = "onnx-community/Kokoro-82M-v1.1-zh-ONNX";
 const tts = await KokoroTTS.from_pretrained(model_id, {
-  dtype: "fp32", // Options: "fp32", "fp16", "q8", "q4", "q4f16"
-  // device: "webgpu", // Options: "wasm", "webgpu" (web) or "cpu" (node).
+  dtype: "fp32",
+  device: "webgpu",
 });
 
-// First, set up the stream
 const splitter = new TextSplitterStream();
 const stream = tts.stream(splitter, { voice: "zf_001" });
+
 (async () => {
-  let i = 0;
+  let index = 0;
   for await (const { text, phonemes, audio } of stream) {
     console.log({ text, phonemes });
-    audio.save(`audio-${i++}.wav`);
+    audio.save(`audio-${index++}.wav`);
   }
 })();
 
-// Next, add text to the stream. Note that the text can be added at different times.
-// For this example, let's pretend we're consuming text from an LLM, one word at a time.
-const text = "Kokoro 是一个轻量级本地语音模型，支持中文和中英混合文本。它可以在浏览器里通过 Transformers.js 运行，也可以在 Node.js 中生成音频文件。";
-const tokens = text.match(/\s*\S+/g);
-for (const token of tokens) {
-  splitter.push(token);
-  await new Promise((resolve) => setTimeout(resolve, 10));
-}
-
-// Finally, close the stream to signal that no more text will be added.
+splitter.push("Kokoro 支持中文和中英 mixed text。它可以分段生成音频。");
 splitter.close();
-
-// Alternatively, if you'd like to keep the stream open, but flush any remaining text, you can use the `flush` method.
-// splitter.flush();
 ```
 
-## Voices/Samples
+`tts.stream()` also accepts a string directly. By default it uses `TextSplitterStream` sentence splitting and further splits long chunks at punctuation boundaries.
 
-> [!TIP]
-> You can find samples for each of the voices in the [model card](https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX#samples) on Hugging Face.
+## API Notes
 
-### American English
-
-| Name         | Traits | Target Quality | Training Duration | Overall Grade |
-| ------------ | ------ | -------------- | ----------------- | ------------- |
-| **af_heart** | 🚺❤️   |                |                   | **A**         |
-| af_alloy     | 🚺     | B              | MM minutes        | C             |
-| af_aoede     | 🚺     | B              | H hours           | C+            |
-| af_bella     | 🚺🔥   | **A**          | **HH hours**      | **A-**        |
-| af_jessica   | 🚺     | C              | MM minutes        | D             |
-| af_kore      | 🚺     | B              | H hours           | C+            |
-| af_nicole    | 🚺🎧   | B              | **HH hours**      | B-            |
-| af_nova      | 🚺     | B              | MM minutes        | C             |
-| af_river     | 🚺     | C              | MM minutes        | D             |
-| af_sarah     | 🚺     | B              | H hours           | C+            |
-| af_sky       | 🚺     | B              | _M minutes_ 🤏    | C-            |
-| am_adam      | 🚹     | D              | H hours           | F+            |
-| am_echo      | 🚹     | C              | MM minutes        | D             |
-| am_eric      | 🚹     | C              | MM minutes        | D             |
-| am_fenrir    | 🚹     | B              | H hours           | C+            |
-| am_liam      | 🚹     | C              | MM minutes        | D             |
-| am_michael   | 🚹     | B              | H hours           | C+            |
-| am_onyx      | 🚹     | C              | MM minutes        | D             |
-| am_puck      | 🚹     | B              | H hours           | C+            |
-| am_santa     | 🚹     | C              | _M minutes_ 🤏    | D-            |
-
-### Chinese (Mandarin) — v1.1 zh voices
-
-| Name     | Gender | Name    | Gender | Name    | Gender |
-| -------- | ------ | ------- | ------ | ------- | ------ |
-| zf_001   | 🚺     | zf_046  | 🚺     | zm_052  | 🚹     |
-| zf_002   | 🚺     | zf_047  | 🚺     | zm_053  | 🚹     |
-| zf_003   | 🚺     | zf_048  | 🚺     | zm_054  | 🚹     |
-| zf_004   | 🚺     | zf_049  | 🚺     | zm_055  | 🚹     |
-| zf_005   | 🚺     | zf_051  | 🚺     | zm_056  | 🚹     |
-| zf_006   | 🚺     | zf_059  | 🚺     | zm_057  | 🚹     |
-| zf_007   | 🚺     | zf_060  | 🚺     | zm_058  | 🚹     |
-| zf_008   | 🚺     | zf_067  | 🚺     | zm_061  | 🚹     |
-| zf_017   | 🚺     | zf_070  | 🚺     | zm_062  | 🚹     |
-| zf_018   | 🚺     | zf_071  | 🚺     | zm_063  | 🚹     |
-| zf_019   | 🚺     | zf_072  | 🚺     | zm_064  | 🚹     |
-| zf_021   | 🚺     | zf_073  | 🚺     | zm_065  | 🚹     |
-| zf_022   | 🚺     | zf_074  | 🚺     | zm_066  | 🚹     |
-| zf_023   | 🚺     | zf_075  | 🚺     | zm_068  | 🚹     |
-| zf_024   | 🚺     | zf_076  | 🚺     | zm_069  | 🚹     |
-| zf_026   | 🚺     | zf_077  | 🚺     | zm_080  | 🚹     |
-| zf_027   | 🚺     | zf_078  | 🚺     | zm_081  | 🚹     |
-| zf_028   | 🚺     | zf_079  | 🚺     | zm_082  | 🚹     |
-| zf_032   | 🚺     | zf_083  | 🚺     | zm_089  | 🚹     |
-| zf_036   | 🚺     | zf_084  | 🚺     | zm_091  | 🚹     |
-| zf_038   | 🚺     | zf_085  | 🚺     | zm_095  | 🚹     |
-| zf_039   | 🚺     | zf_086  | 🚺     | zm_096  | 🚹     |
-| zf_040   | 🚺     | zf_087  | 🚺     | zm_097  | 🚹     |
-| zf_042   | 🚺     | zf_088  | 🚺     | zm_098  | 🚹     |
-| zf_043   | 🚺     | zf_090  | 🚺     | zm_100  | 🚹     |
-| zf_044   | 🚺     | zf_092  | 🚺     | zm_009  | 🚹     |
-| zf_092   | 🚺     | zf_093  | 🚺     | zm_010  | 🚹     |
-| zf_094   | 🚺     | zf_099  | 🚺     | zm_011  | 🚹     |
-| zm_012   | 🚹     | zm_020  | 🚹     | zm_029  | 🚹     |
-| zm_013   | 🚹     | zm_025  | 🚹     | zm_030  | 🚹     |
-| zm_014   | 🚹     | zm_031  | 🚹     | zm_033  | 🚹     |
-| zm_015   | 🚹     | zm_034  | 🚹     | zm_035  | 🚹     |
-| zm_016   | 🚹     | zm_037  | 🚹     | zm_041  | 🚹     |
-| zm_045   | 🚹     | zm_050  | 🚹     |         |        |
-
-Use with v1.1 zh model: `onnx-community/Kokoro-82M-v1.1-zh-ONNX`.
-
-### British English
-
-| Name        | Traits | Target Quality | Training Duration | Overall Grade |
-| ----------- | ------ | -------------- | ----------------- | ------------- |
-| bf_alice    | 🚺     | C              | MM minutes        | D             |
-| bf_emma     | 🚺     | B              | **HH hours**      | B-            |
-| bf_isabella | 🚺     | B              | MM minutes        | C             |
-| bf_lily     | 🚺     | C              | MM minutes        | D             |
-| bm_daniel   | 🚹     | C              | MM minutes        | D             |
-| bm_fable    | 🚹     | B              | MM minutes        | C             |
-| bm_george   | 🚹     | B              | MM minutes        | C             |
-| bm_lewis    | 🚹     | C              | H hours           | D+            |
+- `KokoroTTS.from_pretrained(model_id, options)` loads the model and tokenizer through Transformers.js.
+- `tts.generate(text, { voice, speed })` returns a Transformers.js `RawAudio` object.
+- `tts.stream(textOrSplitter, options)` yields `{ text, phonemes, audio }` for each generated chunk.
+- `voicePath` is a base path, not a full file path; the runtime loads `${voicePath}/${voice}.bin` in browsers and resolves the same pattern from the local filesystem in Node.js.
+- Chinese voices begin with `zf_` or `zm_` and use the Chinese phonemizer path. English voices beginning with `af_` or `bf_` use the English phonemizer path.
