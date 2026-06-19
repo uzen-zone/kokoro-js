@@ -59,6 +59,28 @@ Main Thread (Vue)               Web Worker
 - Node.js >= 18
 - The `kokoro-js` parent package must be built first / 父级 `kokoro-js` 包需要先构建：
 
+### Download model file / 下载模型文件
+
+The ONNX model (`model.onnx`, ~339 MB) is not included in the repository due to GitHub's file size limit. Download it manually and place it in the correct location:
+
+模型文件 (`model.onnx`, ~339 MB) 因超过 GitHub 文件大小限制，未包含在仓库中。请手动下载并放置到正确位置：
+
+```bash
+# Download from Hugging Face / 从 Hugging Face 下载
+# Method 1: Use git LFS
+git lfs clone https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX
+# Then copy model.onnx to demo/public/kokoro/onnx/
+
+# Method 2: Download directly / 直接下载
+# https://huggingface.co/onnx-community/Kokoro-82M-v1.1-zh-ONNX/resolve/main/onnx/model.onnx
+```
+
+Place the downloaded `model.onnx` file at:
+
+```
+demo/public/kokoro/onnx/model.onnx
+```
+
 ```bash
 cd ..
 npm run build
