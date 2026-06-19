@@ -9,14 +9,14 @@
 
 语言：[English](./README.md) | 简体中文
 
-`@uzen/kokoro-js` 是基于 [Transformers.js](https://huggingface.co/docs/transformers.js) 的 Kokoro TTS JavaScript 运行时封装。当前版本面向 v1.1 中文模型接线，内置中文音素化流程，支持普通话以及中英混合文本。
+`@uzen/kokoro-js` 是基于 [Transformers.js](https://huggingface.co/docs/transformers.js) 的 Kokoro TTS JavaScript 运行时封装。当前版本面向 Kokoro-82M-v1.1-zh-ONNX 模型接线，内置中文音素化流程，支持普通话以及中英混合文本。
 
 ## 目标
 
 - 为 `kokoro.js` 增加浏览器本地的普通话和中英混合 TTS 支持。
 - 以 Python `kokoro` 和 `misaki` v1.1 中文前端作为中文音素化、文本归一化、变调和儿化行为参考。
 - 保持 JavaScript 包运行时自包含且适合浏览器使用；Python 只作为行为参考，不作为运行时依赖。
-- 面向 v1.1 中文 ONNX 模型、本地 voice 资产和 WebGPU 优先路径，提供可实际部署的 Web 推理体验。
+- 面向 Kokoro-82M-v1.1-zh-ONNX 模型、本地 voice 资产和 WebGPU 优先路径，提供可实际部署的 Web 推理体验。
 - 中英混合文本中的英文片段保留可读输出，走现有英文音素化路径，而不是丢弃或替换为未知符号。
 
 ## 当前状态
@@ -30,7 +30,7 @@
 ## 特点
 
 - 通过 Transformers.js 在浏览器和 Node.js 中运行 Kokoro TTS。
-- 支持 v1.1 中文 ONNX 模型：`onnx-community/Kokoro-82M-v1.1-zh-ONNX`。
+- 支持 Kokoro-82M-v1.1-zh-ONNX 模型：`onnx-community/Kokoro-82M-v1.1-zh-ONNX`。
 - 支持普通话文本和中英混合文本，中文会走显式中文音素化路径。
 - 通过 `voicePath` 加载本地 voice 文件；npm 包不内置 voice `.bin` 文件。
 - 支持 `tts.generate()` 一次性生成，也支持 `tts.stream()` 分段生成。
@@ -53,7 +53,7 @@ npm i @uzen/kokoro-js
 
 ## 模型和声音
 
-使用 v1.1 中文 ONNX 模型：
+使用 Kokoro-82M-v1.1-zh-ONNX 模型：
 
 ```txt
 onnx-community/Kokoro-82M-v1.1-zh-ONNX
@@ -64,7 +64,7 @@ voice `.bin` 文件不会打包进 npm 包。请从模型仓库下载需要的 v
 - 浏览器/Vite 应用：把 `zf_001.bin` 这类文件放到 `public/kokoro/voices/`；默认 `voicePath` 是 `/kokoro/voices`。
 - Node.js：把 voice 文件放到本地目录，并把该目录作为 `voicePath` 传入，例如 `voicePath: "./voices"`。
 
-当前注册的 voice 包括 v1.1 中文 voice、两个美式英语 voice 和一个英式英语 voice：
+当前注册的 voice 包括 Kokoro-82M-v1.1-zh-ONNX 中文 voice、两个美式英语 voice 和一个英式英语 voice：
 
 ```txt
 af_maple, af_sol, bf_vale

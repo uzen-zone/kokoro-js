@@ -9,14 +9,14 @@
 
 Language: English | [简体中文](./README-zh.md)
 
-`@uzen/kokoro-js` is a JavaScript runtime wrapper for Kokoro TTS based on [Transformers.js](https://huggingface.co/docs/transformers.js). This fork is wired for the v1.1 Chinese model and supports Mandarin plus mixed Chinese/English text through the built-in phonemizer.
+`@uzen/kokoro-js` is a JavaScript runtime wrapper for Kokoro TTS based on [Transformers.js](https://huggingface.co/docs/transformers.js). This fork is wired for the Kokoro-82M-v1.1-zh-ONNX model and supports Mandarin plus mixed Chinese/English text through the built-in phonemizer.
 
 ## Goals
 
 - Add browser-local Mandarin and mixed Chinese/English TTS support to `kokoro.js`.
 - Use Python `kokoro` plus `misaki` v1.1 Chinese frontend behavior as the reference for Chinese phonemization, normalization, tone sandhi, and erhua handling.
 - Keep the JavaScript package self-contained and browser-friendly at runtime; Python is used only as a behavior reference, not as a runtime dependency.
-- Target practical web inference with the v1.1 Chinese ONNX model, local voice assets, and a WebGPU-first default path.
+- Target practical web inference with the Kokoro-82M-v1.1-zh-ONNX model, local voice assets, and a WebGPU-first default path.
 - Preserve usable English spans in mixed text by routing them through the existing English phonemizer path instead of dropping them.
 
 ## Current Status
@@ -30,7 +30,7 @@ Language: English | [简体中文](./README-zh.md)
 ## Features
 
 - Runs Kokoro TTS in browser and Node.js through Transformers.js.
-- Supports the v1.1 Chinese ONNX model: `onnx-community/Kokoro-82M-v1.1-zh-ONNX`.
+- Supports the Kokoro-82M-v1.1-zh-ONNX model: `onnx-community/Kokoro-82M-v1.1-zh-ONNX`.
 - Supports Mandarin text and mixed Chinese/English text with explicit Chinese phonemization.
 - Provides local voice loading through `voicePath`; voice `.bin` files are not bundled in the npm package.
 - Supports single-shot generation through `tts.generate()` and chunked generation through `tts.stream()`.
@@ -53,7 +53,7 @@ Installing this package also installs its runtime dependencies, including `@hugg
 
 ## Model And Voices
 
-Use the v1.1 Chinese ONNX model:
+Use the Kokoro-82M-v1.1-zh-ONNX model:
 
 ```txt
 onnx-community/Kokoro-82M-v1.1-zh-ONNX
@@ -64,7 +64,7 @@ Voice `.bin` files are not bundled in the npm package. Download the voice files 
 - Browser/Vite apps: put files such as `zf_001.bin` under `public/kokoro/voices/`; the default `voicePath` is `/kokoro/voices`.
 - Node.js: put the files in a local directory and pass that directory as `voicePath`, for example `voicePath: "./voices"`.
 
-Current registered voices are the v1.1 Chinese voices plus two American English voices and one British English voice:
+Current registered voices are the Kokoro-82M-v1.1-zh-ONNX Chinese voices plus two American English voices and one British English voice:
 
 ```txt
 af_maple, af_sol, bf_vale
